@@ -1,0 +1,28 @@
+<!--
+  Vlož tyto řádky do android/app/src/main/AndroidManifest.xml,
+  vygenerovaného pomocí `npx @react-native-community/cli init`.
+  Umísti <uses-permission> tagy před <application ...> tag.
+-->
+
+<!-- Android 12+ (API 31+) -->
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+<!-- Android <= 11 (API <= 30) -->
+<uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" android:maxSdkVersion="30" />
+
+<!-- Internet pro Overpass/BRouter/OSRM a Google Maps dlaždice -->
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+<!--
+  Do <application> tagu (jako přímé dítě, vedle <activity>) přidej Google Maps API klíč:
+
+  <meta-data
+      android:name="com.google.android.geo.API_KEY"
+      android:value="TVUJ_GOOGLE_MAPS_API_KLIC" />
+
+  Klíč získáš v Google Cloud Console (povol "Maps SDK for Android").
+-->
