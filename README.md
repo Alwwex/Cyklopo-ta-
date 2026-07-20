@@ -31,6 +31,25 @@ otevři `firmware/CykloComp/CykloComp.ino` v Arduino IDE, vyber desku
 **Ve složce sketche smí být jen tento jeden `.ino` soubor** – to je
 podmínka Arduino IDE, aby překlad prošel.
 
+## Testování přes USB (bez telefonu/appky)
+
+Než je hotová appka (nebo kdykoliv chceš rychle ladit displej/protokol
+bez BLE), firmware zvládá **stejný textový protokol i po USB** –
+nativní USB-CDC, žádný adaptér navíc.
+
+1. V Arduino IDE: **Tools → USB CDC On Boot → Enabled** (jinak `Serial`
+   poběží jen po klasickém UART-USB mostu, ne po nativním USB portu).
+2. Nahraj firmware, otevři Serial Monitor (115200 baud) nebo spusť
+   `python3 tools/usb_console.py [PORT]` (potřeba `pip install pyserial`).
+3. Piš přímo protokolové příkazy (`RIDE:START`, `SCREEN:2`,
+   `CFG:FIELDS:0,1,3,4`, `SET_TZ:2`, …) a sleduj JSON telemetrii, kterou
+   ESP vypisuje 1×/s. `tools/usb_console.py` navíc umí `testroute` –
+   pošle ukázkovou trasu přes `RT:BEGIN/RT:P/RT:END` na otestování mapy.
+
+BLE a USB kanál běží současně a sdílejí stejnou logiku (`handleCommand`),
+takže appka a USB konzole se nijak nebijí – je to čistě přídavný ladicí
+kanál pro tuhle fázi vývoje.
+
 ## BLE protokol (musí sedět firmware ↔ appka)
 
 - Service UUID: `a5c40001-2f0b-4f6e-9d3a-8c1e2b7d9f10`
@@ -76,6 +95,17 @@ Klíčové vrstvy:
 7. **Rychlost při stání** – EMA + práh 2,5 km/h → `0.0`, ne GPS šum.
 8. **⚙ konfigurace polí** – přeskládání 2×2 mřížky přežije restart ESP
    (uloženo v NVS) i restart appky (AsyncStorage).
+
+## Oprava "rozbitého" textu na displeji
+
+Anti-flicker vykreslování (`drawField`) původně mazalo jen pevně
+definovaný obdélník pole (`x,y,w,h`). Pokud byl skutečný vykreslený text
+širší/vyšší než tento odhad (delší číslo, jiná šířka znaku), zbytky
+starých znaků zůstávaly na displeji a vypadalo to jako "rozbitý" text.
+Teď se plocha na smazání počítá přes `tft.getTextBounds()` – sjednocení
+bounding boxu starého i nového textu – takže se vždy smaže přesně to, co
+bylo předtím vykreslené. Zároveň je zapnuté `tft.setTextWrap(false)`,
+aby se delší text nezalomil přes sousední panel.
 
 ## Hranice systému
 

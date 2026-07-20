@@ -31,6 +31,10 @@
 #define BTN2_PIN 9
 #define BTN3_PIN 10
 
+// USB (nativni USB-CDC) - stejny textovy protokol jako BLE, pro testovani z PC
+// bez telefonu. V Arduino IDE: Tools -> USB CDC On Boot -> Enabled.
+#define USB_SERIAL_BAUD 115200
+
 // ============================================================================
 // BLE UUID + PROTOKOL
 // ============================================================================
@@ -170,6 +174,8 @@ unsigned long lastTelemetryMs = 0;
 unsigned long lastNvsSaveMs = 0;
 
 char cmdBuf[CMD_BUF_SIZE];
+char serialCmdBuf[CMD_BUF_SIZE];
+int serialCmdLen = 0;
 
 ButtonState btn1 = {BTN1_PIN, false, false, 0, 0, false};
 ButtonState btn2 = {BTN2_PIN, false, false, 0, 0, false};
@@ -260,10 +266,34 @@ void formatFieldValue(uint8_t idx, char* out, size_t outLen) {
 // ============================================================================
 void invalidateField(DataField &f) { f.valid = false; }
 
+// Smaze presne plochu stareho i noveho textu (sjednoceni bounding boxu),
+// jinak pri zmene delky/sirky znaku (napr. "12.3" -> "9.8") zustavaji
+// na displeji zbytky puvodnich znaku - to vypada jako "rozbity" text.
 void drawField(DataField &f, const char* newText, uint16_t bg) {
   if (f.valid && strcmp(f.text, newText) == 0) return;
-  tft.fillRect(f.x, f.y - f.h, f.w, f.h + 6, bg);
+
   tft.setFont(f.font);
+
+  int16_t bx, by;
+  uint16_t bw, bh;
+  int16_t clearLeft = f.x, clearTop = (int16_t)(f.y - f.h);
+  int16_t clearRight = (int16_t)(f.x + f.w), clearBottom = (int16_t)(f.y + 6);
+
+  tft.getTextBounds(newText, f.x, f.y, &bx, &by, &bw, &bh);
+  clearLeft = min(clearLeft, bx);
+  clearTop = min(clearTop, by);
+  clearRight = max(clearRight, (int16_t)(bx + bw));
+  clearBottom = max(clearBottom, (int16_t)(by + bh));
+
+  if (f.valid) {
+    tft.getTextBounds(f.text, f.x, f.y, &bx, &by, &bw, &bh);
+    clearLeft = min(clearLeft, bx);
+    clearTop = min(clearTop, by);
+    clearRight = max(clearRight, (int16_t)(bx + bw));
+    clearBottom = max(clearBottom, (int16_t)(by + bh));
+  }
+
+  tft.fillRect(clearLeft - 1, clearTop - 1, (clearRight - clearLeft) + 2, (clearBottom - clearTop) + 2, bg);
   tft.setTextColor(f.color, bg);
   tft.setCursor(f.x, f.y);
   tft.print(newText);
@@ -980,6 +1010,23 @@ void handleCommand(const char* cmd) {
   else if (!strcmp(cmd, "MP:END")) { receivingStreets = false; mapStaticDrawn = false; }
 }
 
+// Ctení stejneho textoveho protokolu z USB (Serial Monitor / PC skript),
+// radek ukonceny \n nebo \r - shodne s BLE prikazovym kanalem.
+void pollSerialCommands() {
+  while (Serial.available()) {
+    char c = (char)Serial.read();
+    if (c == '\n' || c == '\r') {
+      if (serialCmdLen > 0) {
+        serialCmdBuf[serialCmdLen] = 0;
+        handleCommand(serialCmdBuf);
+        serialCmdLen = 0;
+      }
+    } else if (serialCmdLen < CMD_BUF_SIZE - 1) {
+      serialCmdBuf[serialCmdLen++] = c;
+    }
+  }
+}
+
 class CommandCallbacks : public NimBLECharacteristicCallbacks {
   void onWrite(NimBLECharacteristic* pChar, NimBLEConnInfo& connInfo) override {
     std::string v = pChar->getValue();
@@ -1018,11 +1065,9 @@ void initBLE() {
   adv->start();
 }
 
-void sendTelemetry() {
-  if (!bleConnected || mapReceivingActive()) return;
-  char buf[196];
+void buildTelemetryJson(char* buf, size_t bufSize) {
   bool fix = gps.location.isValid();
-  snprintf(buf, sizeof(buf),
+  snprintf(buf, bufSize,
     "{\"fix\":%d,\"spd\":%.1f,\"lat\":%.6f,\"lng\":%.6f,\"alt\":%.1f,\"dst\":%.3f,\"tim\":%lu,\"sat\":%d,\"rid\":%d,\"pau\":%d}",
     fix ? 1 : 0,
     filteredSpeedKmh,
@@ -1035,8 +1080,17 @@ void sendTelemetry() {
     recording ? 1 : 0,
     manualPaused ? 1 : 0
   );
-  telemetryChar->setValue((uint8_t*)buf, strlen(buf));
-  telemetryChar->notify();
+}
+
+void sendTelemetry() {
+  if (mapReceivingActive()) return;
+  char buf[196];
+  buildTelemetryJson(buf, sizeof(buf));
+  if (bleConnected) {
+    telemetryChar->setValue((uint8_t*)buf, strlen(buf));
+    telemetryChar->notify();
+  }
+  Serial.println(buf); // vzdy - USB je nezavisly testovaci kanal na BLE/appce
 }
 
 // ============================================================================
@@ -1074,9 +1128,12 @@ void setup() {
 
   loadPreferences();
 
+  Serial.begin(USB_SERIAL_BAUD); // nativni USB-CDC - neceka se na terminal, funguje i na baterii bez PC
+
   SPI.begin(TFT_SCLK, -1, TFT_MOSI, TFT_CS);
   tft.init(240, 320);
   tft.setRotation(0);
+  tft.setTextWrap(false); // dlouhy text se nesmi zalamovat pres jine panely
   tft.fillScreen(COL_BG);
 
   gpsSerial.begin(GPS_BAUD, SERIAL_8N1, GPS_RX_PIN, GPS_TX_PIN);
@@ -1088,6 +1145,7 @@ void setup() {
 
 void loop() {
   readGpsSerial();
+  pollSerialCommands();
   updateFilteredSpeed();
   updateDistanceAndStats();
   updateRideClock();
