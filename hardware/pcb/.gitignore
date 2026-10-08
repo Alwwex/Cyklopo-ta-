@@ -1,0 +1,6 @@
+build/gerber/
+build/*.dsn
+*.kicad_prl
+*-backups/
+fp-info-cache
+logs/
