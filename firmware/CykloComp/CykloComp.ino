@@ -78,6 +78,11 @@
 
 #define BAT_DIVIDER 2.0f
 
+// Otoceni displeje: 0 = normalne, 2 = vzhuru nohama (podle toho, jak modul sedi v krabicce)
+#ifndef TFT_ROTATION
+#define TFT_ROTATION 0
+#endif
+
 // ============================================================================
 // PINY (spolecne)
 // ============================================================================
@@ -2475,7 +2480,7 @@ void setup() {
   SPI.begin(TFT_SCLK, -1, TFT_MOSI, TFT_CS);
   tft.init(240, 320);
   tft.setSPISpeed(40000000);
-  tft.setRotation(0);
+  tft.setRotation(TFT_ROTATION);
   tft.setTextWrap(false); // dlouhy text se nesmi zalamovat pres jine panely
   initBacklight();
   drawSplash();
