@@ -8,6 +8,12 @@ export const FIELD_OPTIONS = [
   { id: 5, label: 'ODOMETR' },
   { id: 6, label: 'SATELITY' },
   { id: 7, label: 'HODINY' },
+  { id: 8, label: 'STOUPANI' },
+  { id: 9, label: 'SKLON' },
+  { id: 10, label: 'TEP' },
+  { id: 11, label: 'KADENCE' },
+  { id: 12, label: 'BATERIE' },
+  { id: 13, label: 'DO CILE' },
 ];
 
 export function fieldLabelById(id) {
