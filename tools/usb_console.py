@@ -16,10 +16,14 @@ Pouziti:
     BAUD vychozi: 115200
 
 V interaktivni konzoli pak muzes psat primo protokolove prikazy, napr.:
+    SIM:1            simulace jizdy bez GPS signalu (SIM:0 vypne)
     RIDE:START
     SCREEN:2
-    CFG:FIELDS:0,1,3,4
+    THEME:1          0 = NOC, 1 = RETRO (Game Boy), 2 = DEN
+    CFG:FIELDS:0,2,3,8
     SET_TZ:2
+    SYNC:LIST        seznam ulozenych jizd (odpoved jako "BULK:{...}")
+    SYNC:TRK:1:0     prvni strana stopy jizdy 1
     RESET_TRIP
 
 Pro odeslani testovaci trasy napis:
