@@ -28,6 +28,13 @@ FP_LIB = '/usr/share/kicad/footprints'
 NAME = 'CykloPCB_v1'
 
 W, H = 43.0, 64.0          # rozmer desky [mm]
+VIA_D, VIA_DRILL = 0.7, 0.3
+USB_SLOT_W = 0.7
+SILK_W = 0.16
+SILK_HOLE_CLR = 0.25
+SILK_PAD_CLR = 0.2
+SILK_MIN_SEG = 0.20
+SILK_EDGE_CLR = 0.2        # potisk konci aspon 0.2 mm od hrany desky
 CORNER = 1.0               # zaobleni rohu
 
 mm = pcbnew.FromMM
@@ -72,10 +79,10 @@ PARTS = [
      {'1': 'GND', '2': 'PROG', '3': 'GND', '4': 'VBUS', '5': 'BAT+', '6': 'STDBY', '7': 'CHRG', '8': 'VBUS', '9': 'GND'}, True),
     ('R3', R0603, '2k', 7.3, 43.0, 0, {'1': 'PROG', '2': 'GND'}, True),
     ('C2', C0805, '10uF', 12.0, 41.4, 0, {'1': 'BAT+', '2': 'GND'}, True),
-    ('R4', R0603, '1k', 19.6, 54.2, 0, {'1': 'VBUS', '2': 'LED_R'}, True),
-    ('R5', R0603, '1k', 19.6, 56.0, 0, {'1': 'VBUS', '2': 'LED_G'}, True),
-    ('D1', LED0603, 'LED red', 19.6, 58.0, 180, {'1': 'CHRG', '2': 'LED_R'}, True),
-    ('D2', LED0603, 'LED green', 19.6, 60.0, 180, {'1': 'STDBY', '2': 'LED_G'}, True),
+    ('R4', R0603, '1k', 18.5, 54.2, 0, {'1': 'VBUS', '2': 'LED_R'}, True),
+    ('R5', R0603, '1k', 18.5, 56.0, 0, {'1': 'VBUS', '2': 'LED_G'}, True),
+    ('D1', LED0603, 'LED red', 18.5, 58.0, 180, {'1': 'CHRG', '2': 'LED_R'}, True),
+    ('D2', LED0603, 'LED green', 18.5, 60.0, 180, {'1': 'STDBY', '2': 'LED_G'}, True),
     # --- load sharing + vypinac + LDO ---
     ('D3', ('Diode_SMD', 'D_SMA'), 'SS34', 12.6, 37.6, 0, {'1': 'SYS', '2': 'VBUS'}, True),
     ('Q1', SOT23, 'AO3401A', 18.3, 38.6, 0, {'1': 'VBUS', '2': 'SYS', '3': 'BAT+'}, True),
@@ -143,10 +150,10 @@ SILK = [  # (text, x, y, size, rot)
     ('TFT', 3.6, 3.2, 1.0, 0),
     ('GPS', 27.75, 3.2, 0.8, 90),
     ('+', 7.3, 22.6, 0.9, 0),
-    ('-', 7.3, 20.6, 0.9, 0),
+    ('-', 7.3, 20.25, 0.9, 0),
     ('ON', 5.2, 40.6, 1.0, 0),
     ('MODE', 3.4, 25.0, 0.8, 0),
-    ('START', 36.0, 12.0, 0.8, 0),
+    ('START', 36.2, 12.0, 0.8, 0),
     ('PAUZA', 34.5, 23.4, 0.8, 0),
     ('NABIJENI', 11.5, 50.3, 0.8, 0),
     ('ESP USB', 32.0, 39.6, 0.8, 0),
@@ -193,8 +200,8 @@ def make_c3zero(board):
         t.SetText(C3_LABELS[i])
         t.SetLayer(pcbnew.F_SilkS)
         t.SetTextSize(pcbnew.VECTOR2I(mm(0.8), mm(0.8)))
-        t.SetTextThickness(mm(0.15))
-        t.SetPosition(pcbnew.VECTOR2I(mm(x + (3.0 if i < 9 else -3.0)), mm(y)))
+        t.SetTextThickness(mm(SILK_W))
+        t.SetPosition(pcbnew.VECTOR2I(mm(x + (3.1 if i < 9 else -3.1)), mm(y)))
         fp.Add(t)
     # obrys modulu + USB
     def line(layer, x1, y1, x2, y2, w=0.12):
@@ -243,7 +250,7 @@ def add_text(board, text, x, y, size, rot=0, layer=pcbnew.F_SilkS):
     t.SetText(text)
     t.SetLayer(layer)
     t.SetTextSize(pcbnew.VECTOR2I(mm(size), mm(size)))
-    t.SetTextThickness(mm(max(0.12, size * 0.15)))
+    t.SetTextThickness(mm(max(SILK_W, size * 0.15)))
     t.SetPosition(pcbnew.VECTOR2I(mm(x), mm(y)))
     t.SetTextAngle(pcbnew.EDA_ANGLE(rot, pcbnew.DEGREES_T))
     board.Add(t)
@@ -311,8 +318,8 @@ def build_board():
     nc = ds.m_NetSettings.m_DefaultNetClass
     nc.SetTrackWidth(mm(0.25))
     nc.SetClearance(mm(0.2))
-    nc.SetViaDiameter(mm(0.6))
-    nc.SetViaDrill(mm(0.3))
+    nc.SetViaDiameter(mm(VIA_D))
+    nc.SetViaDrill(mm(VIA_DRILL))
     ds.m_TrackMinWidth = mm(0.15)
     ds.m_MinClearance = mm(0.15)
     ds.m_ViasMinSize = mm(0.5)
@@ -320,6 +327,8 @@ def build_board():
     ds.m_CopperEdgeClearance = mm(0.3)
     ds.m_HoleClearance = mm(0.25)
     ds.m_HoleToHoleMin = mm(0.25)
+    ds.m_SolderMaskExpansion = mm(0.05)
+    ds.m_SolderMaskMinWidth = 0
 
     nets = {}
     def net(name):
@@ -336,7 +345,7 @@ def build_board():
         fp.SetReference(ref)
         fp.SetValue(value)
         fp.Reference().SetTextSize(pcbnew.VECTOR2I(mm(0.8), mm(0.8)))
-        fp.Reference().SetTextThickness(mm(0.12))
+        fp.Reference().SetTextThickness(mm(SILK_W))
         fp.Reference().SetVisible(False)   # popisky jsou vlastni (SILK), refs jsou v BOM/CPL
         fp.Value().SetVisible(False)
         board.Add(fp)
@@ -349,6 +358,16 @@ def build_board():
                 p.SetNet(ni)
         if ref == 'J1':
             fp.SetZoneConnection(pcbnew.ZONE_CONNECTION_FULL)  # pevne pripojeni stineni USB-C
+            for p in fp.Pads():
+                if p.GetNumber() == 'S1':
+                    front = pcbnew.ToMM(p.GetDrillSize().y) > 1.5
+                    slot_l = 1.7 if front else max(1.2, 2 * USB_SLOT_W)
+                    p.SetDrillSize(pcbnew.VECTOR2I(mm(USB_SLOT_W), mm(slot_l)))
+                    p.SetSize(pcbnew.VECTOR2I(mm(USB_SLOT_W + 0.4), mm(slot_l + 0.4)))
+            fp.SetLocalSolderMaskMargin(mm(0.025))
+            for p in fp.Pads():
+                if p.GetNumber() in ('B1', 'B4', 'B9', 'B12'):
+                    ls = p.GetLayerSet(); ls.RemoveLayer(pcbnew.F_Mask); ls.RemoveLayer(pcbnew.F_Paste); p.SetLayerSet(ls)
         lcsc = LCSC.get(value)
         if lcsc and hasattr(fp, 'SetProperty'):
             fp.SetProperty('LCSC', lcsc)
@@ -366,13 +385,20 @@ def build_board():
     u1 = board.FindFootprintByReference('U1')
     c = u1.GetPosition()
     for dx in (-0.6, 0.6):
-        for dy in (-0.9, 0.9):
+        for dy in (-2.3, 2.3):
             v = pcbnew.PCB_VIA(board)
             v.SetPosition(pcbnew.VECTOR2I(c.x + mm(dx), c.y + mm(dy)))
-            v.SetWidth(mm(0.6))
-            v.SetDrill(mm(0.3))
+            v.SetWidth(mm(VIA_D))
+            v.SetDrill(mm(VIA_DRILL))
             v.SetNet(nets['GND'])
             board.Add(v)
+            t = pcbnew.PCB_TRACK(board)
+            t.SetStart(pcbnew.VECTOR2I(c.x + mm(dx), c.y + mm(dy)))
+            t.SetEnd(pcbnew.VECTOR2I(c.x + mm(dx), c.y + mm(1.2 if dy > 0 else -1.2)))
+            t.SetWidth(mm(0.5))
+            t.SetLayer(pcbnew.F_Cu)
+            t.SetNet(nets['GND'])
+            board.Add(t)
     # pod modulem ESP nesmi byt na horni strane cesty ani prokovy (zkrat na jeho spodni pady)
     add_zone(board, None, pcbnew.F_Cu,
              [(24.5, 42.0), (39.5, 42.0), (39.5, 64.5), (24.5, 64.5)], rule_area=True)
@@ -392,13 +418,17 @@ def export_dsn(board, path):
         old = m.group(0)
         new = '(class kicad_default "" ' + ' '.join(rest) + '\n      (circuit'
         s = s.replace(old, new)
+        mv = re.search(r'\(padstack "?(Via\[[^"\s]+)"?', s)
+        via_name = mv.group(1) if mv else 'Via[0-1]_%d:%d_um' % (round(VIA_D * 1000), round(VIA_DRILL * 1000))
         cls = ('    (class power ' + ' '.join(power) +
-               '\n      (circuit\n        (use_via "Via[0-1]_600:300_um")\n      )\n'
-               '      (rule\n        (width 500)\n        (clearance 200)\n      )\n    )\n')
+               '\n      (circuit\n        (use_via "' + via_name + '")\n      )\n'
+               '      (rule\n        (width 500)\n        (clearance 200)\n        (clearance 300 (type via_smd))\n      )\n    )\n')
         # vloz novou tridu pred konec sekce network
         idx = s.rfind('(class kicad_default')
         end = s.find('\n  )\n  (wiring', idx)
         s = s[:end] + '\n' + cls.rstrip('\n') + s[end:]
+    s = s.replace('(clearance 200.1)\n      )\n    )', '(clearance 200.1)\n        (clearance 300 (type via_smd))\n      )\n    )', 1)
+    s = s.replace('\n  )\n  (wiring', '\n    (class_class (classes kicad_default power default)\n      (rule (clearance 300 (type via_smd)))\n    )\n  )\n  (wiring', 1)
     open(path, 'w').write(s)
 
 
@@ -449,7 +479,7 @@ def import_ses(board, nets, ses):
                 count_t += 1
         for v in re.finditer(r'\(via\s+"?([^"\s]+)"?\s+(-?\d+)\s+(-?\d+)', block):
             mv = re.search(r'(\d+):(\d+)_um', v.group(1))
-            dia, drill = (int(mv.group(1)) / 1000, int(mv.group(2)) / 1000) if mv else (0.6, 0.3)
+            dia, drill = (int(mv.group(1)) / 1000, int(mv.group(2)) / 1000) if mv else (VIA_D, VIA_DRILL)
             vp = pcbnew.VECTOR2I(mm(int(v.group(2)) * scale), mm(-int(v.group(3)) * scale))
             if any(abs(vp.x - ex) < mm(0.05) and abs(vp.y - ey) < mm(0.05) for ex, ey in existing):
                 continue
@@ -461,6 +491,235 @@ def import_ses(board, nets, ses):
             board.Add(via)
             count_v += 1
     print(f'importovano {count_t} usecek, {count_v} prokovu')
+
+
+def _silk_holes(board):
+    out = []
+    for fp in board.GetFootprints():
+        for p in fp.Pads():
+            if p.GetDrillSize().x <= 0:
+                continue
+            hs = p.GetEffectiveHoleShape()
+            a, b, r = hs.GetSeg().A, hs.GetSeg().B, hs.GetWidth() / 2
+            n = max(1, int(math.hypot(b.x - a.x, b.y - a.y) / (r / 4)))
+            for k in range(n + 1):
+                out.append((a.x + (b.x - a.x) * k / n, a.y + (b.y - a.y) * k / n, r))
+    for v in board.GetTracks():
+        if v.GetClass() == 'PCB_VIA':
+            out.append((v.GetPosition().x, v.GetPosition().y, v.GetDrillValue() / 2))
+    return out
+
+
+def _silk_pad_polys(board, layer, extra):
+    """Masky padu (pad + expanze) nafouknute o extra -> seznam (bbox, SHAPE_POLY_SET)."""
+    mlayer = pcbnew.F_Mask if layer == pcbnew.F_SilkS else pcbnew.B_Mask
+    out = []
+    for fp in board.GetFootprints():
+        for p in fp.Pads():
+            if not p.IsOnLayer(mlayer):
+                continue
+            ps = pcbnew.SHAPE_POLY_SET()
+            p.TransformShapeToPolygon(ps, mlayer, int(p.GetSolderMaskExpansion() + extra), mm(0.005))
+            bb = ps.BBox()
+            out.append(((bb.GetX(), bb.GetY(), bb.GetRight(), bb.GetBottom()), ps))
+    return out
+
+
+def _cut_intervals(ax, ay, bx, by, holes, extra, pads):
+    dx, dy = bx - ax, by - ay
+    L2 = dx * dx + dy * dy
+    cut = []
+    for hx, hy, r in holes:
+        R = r + extra
+        fx, fy = ax - hx, ay - hy
+        A, B, C = L2, 2 * (fx * dx + fy * dy), fx * fx + fy * fy - R * R
+        if A == 0:
+            continue
+        disc = B * B - 4 * A * C
+        if disc <= 0:
+            continue
+        sq = math.sqrt(disc)
+        t0, t1 = (-B - sq) / (2 * A), (-B + sq) / (2 * A)
+        if t1 <= 0 or t0 >= 1:
+            continue
+        cut.append((max(0.0, t0), min(1.0, t1)))
+    if pads:
+        L = math.sqrt(L2)
+        n = max(2, int(L / mm(0.01)))
+        x0, x1, y0, y1 = min(ax, bx), max(ax, bx), min(ay, by), max(ay, by)
+        cand = [ps for (bx0, by0, bx1, by1), ps in pads if bx0 <= x1 and x0 <= bx1 and by0 <= y1 and y0 <= by1]
+        if cand:
+            inside = [any(ps.Contains(pcbnew.VECTOR2I(int(ax + dx * k / n), int(ay + dy * k / n))) for ps in cand)
+                      for k in range(n + 1)]
+            k = 0
+            while k <= n:
+                if inside[k]:
+                    j = k
+                    while j + 1 <= n and inside[j + 1]:
+                        j += 1
+                    cut.append((max(0.0, (k - 1) / n), min(1.0, (j + 1) / n)))
+                    k = j + 1
+                else:
+                    k += 1
+    keep, t = [], 0.0
+    for c0, c1 in sorted(cut):
+        if c0 > t:
+            keep.append((t, c0))
+        t = max(t, c1)
+    if t < 1.0:
+        keep.append((t, 1.0))
+    return keep, bool(cut)
+
+
+def _clip_rect(ax, ay, bx, by, x0, y0, x1, y1):
+    """Liang-Barsky: cast usecky uvnitr obdelniku jako (t0, t1), nebo None."""
+    t0, t1 = 0.0, 1.0
+    dx, dy = bx - ax, by - ay
+    for p, q in ((-dx, ax - x0), (dx, x1 - ax), (-dy, ay - y0), (dy, y1 - ay)):
+        if p == 0:
+            if q < 0:
+                return None
+            continue
+        r = q / p
+        if p < 0:
+            t0 = max(t0, r)
+        else:
+            t1 = min(t1, r)
+        if t0 >= t1:
+            return None
+    return t0, t1
+
+
+def fix_silk(board):
+    """Po routovani: potisk >= SILK_W, cary potisku oriznout u vrtani (a volitelne u masek padu)."""
+    silk = (pcbnew.F_SilkS, pcbnew.B_SilkS)
+    holes = _silk_holes(board)
+    pads = {L: (_silk_pad_polys(board, L, mm(SILK_PAD_CLR + 0.1)) if SILK_PAD_CLR > 0 else []) for L in silk}  # +0.1 = pul sirky cary (<= 0.2)
+    n_w = n_cut = n_bad = 0
+    for fp in board.GetFootprints():
+        for t in (fp.Reference(), fp.Value()):
+            if t.GetTextThickness() < mm(SILK_W):
+                t.SetTextThickness(mm(SILK_W))
+        for g in list(fp.GraphicalItems()):
+            if g.GetLayer() not in silk:
+                continue
+            if isinstance(g, pcbnew.FP_TEXT):
+                if g.GetTextThickness() < mm(SILK_W):
+                    g.SetTextThickness(mm(SILK_W)); n_w += 1
+                continue
+            if g.GetWidth() < mm(SILK_W):
+                g.SetWidth(mm(SILK_W)); n_w += 1
+            if g.GetShape() == pcbnew.SHAPE_T_POLY:
+                # vyplnena znacka (napr. pin 1): neorezava se, ale posune se od otvoru/masky padu
+                def poly_hits():
+                    bb = g.GetBoundingBox()                 # obalovy obdelnik (vc. sirky cary), konzervativne
+                    x0, y0, x1, y1 = bb.GetX(), bb.GetY(), bb.GetRight(), bb.GetBottom()
+                    lay = pads.get(g.GetLayer(), [])
+                    for (ax, ay), (bx, by) in (((x0, y0), (x1, y0)), ((x1, y0), (x1, y1)), ((x1, y1), (x0, y1)), ((x0, y1), (x0, y0))):
+                        if _cut_intervals(ax, ay, bx, by, holes, mm(SILK_HOLE_CLR), lay)[1]:
+                            return True
+                    return False
+                if poly_hits():
+                    done = False
+                    for k in range(1, 9):
+                        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, 1), (1, -1), (-1, -1)):
+                            v = pcbnew.VECTOR2I(dx * mm(0.05 * k), dy * mm(0.05 * k))
+                            g.Move(v)
+                            if not poly_hits():
+                                done = True; break
+                            g.Move(pcbnew.VECTOR2I(-v.x, -v.y))
+                        if done:
+                            break
+                    if done:
+                        g.SetLocalCoord()
+                        print(f'  znacka potisku {fp.GetReference()} posunuta o {0.05 * k:.2f} mm')
+                    else:
+                        g.SetLayer(pcbnew.F_Fab if g.GetLayer() == pcbnew.F_SilkS else pcbnew.B_Fab)
+                        print(f'  znacka potisku {fp.GetReference()} nejde posunout -> Fab')
+                continue
+            if g.GetShape() != pcbnew.SHAPE_T_SEGMENT:
+                continue
+            a, b = g.GetStart(), g.GetEnd()
+            ext = g.GetWidth() // 2
+            pp = []
+            if pads[g.GetLayer()]:
+                # nafouknout o polovinu sirky cary navic
+                pp = [(bb, ps) for bb, ps in pads[g.GetLayer()]]
+            keep, hit = _cut_intervals(a.x, a.y, b.x, b.y, holes, mm(SILK_HOLE_CLR) + ext,
+                                       [((bb[0] - ext, bb[1] - ext, bb[2] + ext, bb[3] + ext), ps) for bb, ps in pp] if pp else [])
+            e = mm(SILK_EDGE_CLR) + ext
+            inside = _clip_rect(a.x, a.y, b.x, b.y, e, e, mm(W) - e, mm(H) - e)
+            if inside != (0.0, 1.0):
+                hit = True
+                keep = [(max(t0, inside[0]), min(t1, inside[1])) for t0, t1 in keep
+                        if inside and min(t1, inside[1]) > max(t0, inside[0])]
+            if not hit:
+                continue
+            # kratke znacky (napr. katodova carka) nejdriv zkusit odsunout o <= 0.1 mm, teprve pak orezat
+            L0 = math.hypot(b.x - a.x, b.y - a.y)
+            kept0 = sum((t1 - t0) * L0 for t0, t1 in keep if (t1 - t0) * L0 >= mm(SILK_MIN_SEG))
+            if kept0 < 0.5 * L0:
+                lay = [((bb[0] - ext, bb[1] - ext, bb[2] + ext, bb[3] + ext), ps) for bb, ps in pp] if pp else []
+                done = None
+                for k in range(1, 5):
+                    for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, 1), (1, -1), (-1, -1)):
+                        ox, oy = dx * mm(0.025 * k), dy * mm(0.025 * k)
+                        if not _cut_intervals(a.x + ox, a.y + oy, b.x + ox, b.y + oy, holes, mm(SILK_HOLE_CLR) + ext, lay)[1]:
+                            done = (ox, oy); break
+                    if done:
+                        break
+                if done:
+                    g.SetStart(pcbnew.VECTOR2I(int(a.x + done[0]), int(a.y + done[1])))
+                    g.SetEnd(pcbnew.VECTOR2I(int(b.x + done[0]), int(b.y + done[1])))
+                    g.SetLocalCoord()
+                    continue
+            n_cut += 1
+            L = math.hypot(b.x - a.x, b.y - a.y)
+            for t0, t1 in keep:
+                if (t1 - t0) * L < mm(SILK_MIN_SEG):
+                    continue
+                s2 = pcbnew.FP_SHAPE(fp)
+                s2.SetShape(pcbnew.SHAPE_T_SEGMENT)
+                s2.SetLayer(g.GetLayer())
+                s2.SetWidth(g.GetWidth())
+                fp.Add(s2)
+                s2.SetStart(pcbnew.VECTOR2I(int(a.x + (b.x - a.x) * t0), int(a.y + (b.y - a.y) * t0)))
+                s2.SetEnd(pcbnew.VECTOR2I(int(a.x + (b.x - a.x) * t1), int(a.y + (b.y - a.y) * t1)))
+                s2.SetLocalCoord()
+            fp.Remove(g)
+    def _text_hits(d):
+        shp = d.GetEffectiveTextShape()          # drzet referenci (SWIG)
+        lay = pads.get(d.GetLayer(), [])
+        for seg in shp.GetSubshapes():
+            sa, sb, hw = seg.GetSeg().A, seg.GetSeg().B, seg.GetWidth() // 2
+            pp = [((bb[0] - hw, bb[1] - hw, bb[2] + hw, bb[3] + hw), ps) for bb, ps in lay]
+            _k, hit = _cut_intervals(sa.x, sa.y, sb.x, sb.y, holes, mm(SILK_HOLE_CLR) + hw, pp)
+            if hit:
+                return True
+        return False
+    for d in list(board.GetDrawings()):
+        if d.GetLayer() not in silk or not isinstance(d, pcbnew.PCB_TEXT):
+            continue
+        if d.GetTextThickness() < mm(SILK_W):
+            d.SetTextThickness(mm(SILK_W)); n_w += 1
+        if not _text_hits(d):
+            continue
+        p0 = d.GetPosition(); moved = None
+        for k in range(1, 11):                      # posun az o 1.0 mm, nejmensi mozny
+            for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, 1), (1, -1), (-1, -1)):
+                d.SetPosition(pcbnew.VECTOR2I(p0.x + dx * mm(0.1 * k), p0.y + dy * mm(0.1 * k)))
+                if not _text_hits(d):
+                    moved = (dx * 0.1 * k, dy * 0.1 * k); break
+            if moved:
+                break
+        if moved:
+            print(f'  text "{d.GetText()}" posunut o ({moved[0]:+.1f}, {moved[1]:+.1f}) mm od otvoru/padu')
+        else:
+            d.SetPosition(p0)
+            print(f'  POZOR: text "{d.GetText()}" je blize nez {SILK_HOLE_CLR} mm k otvoru - uprav SILK')
+            n_bad += 1
+    print(f'potisk: {n_w} prvku zesileno na {SILK_W} mm, {n_cut} car oriznuto')
+    return n_bad
 
 
 def add_zones_only(board, nets):
@@ -551,6 +810,7 @@ def main():
     ap.add_argument('--passes', type=int, default=40)
     ap.add_argument('--place-only', action='store_true')
     ap.add_argument('--reuse-ses', action='store_true', help='nepoustet Freerouting, pouzit build/*.ses')
+    ap.add_argument('--force', action='store_true', help='vyrobni data i pri chybach DRC / neroutovanych spojich')
     args = ap.parse_args()
 
     out = os.path.join(HERE, 'build')
@@ -574,6 +834,7 @@ def main():
             os.remove(ses)
         run_freerouting(args.freerouting, dsn, ses, args.passes)
     import_ses(board, nets, ses)
+    silk_bad = fix_silk(board)
     add_zones_only(board, nets)
     board.Save(pcb_path)
     # zony se spolehlive vyleji jen na desce nactene ze souboru (s projektem)
@@ -585,6 +846,10 @@ def main():
     cats = re.findall(r'^\[(\w+)\]', txt, re.M)
     real = [c for c in cats if c != 'lib_footprint_issues']   # jen chybejici tabulka knihoven
     print(f'DRC: {len(real)} poruseni ({", ".join(sorted(set(real))) or "zadna"}), {nunc} nepripojenych padu (build/drc.rpt)')
+    # nedoroutovana deska nebo potisk na otvoru se nesmi dostat do ZIPu pro vyrobu
+    if (nunc != 0 or real or silk_bad) and not args.force:
+        sys.exit('STOP: deska neni cista (DRC / nepripojene pady / potisk) - vyrobni data NEvytvorena. '
+                 'Zkus vic --passes, uprav rozmisteni, nebo --force.')
     fab_outputs(pcb_path, out, board)
     print('Hotovo ->', out)
 
