@@ -113,7 +113,7 @@ module base() {
         esp_z = pcb_top + (esp_on_pins ? 2.5 : 0) + 1.0 + 1.6;
         translate([esp[0], -wall / 2, esp_z]) rounded_slot(12.5, 7.5, wall + 2);
         // svetlovod nabijeci LED (zalij kapkou cireho lepidla)
-        // LED D1/D2 jsou na PCB na x = 18.5; otvor je o 1 mm vedle, aby mezi nim
+        // LED D1/D2 jsou na PCB na x = 18.5; otvor je o 1.1 mm vedle, aby mezi nim
         // a otvorem USB-C zustala stena (svetlo LED se v krabicce rozptyli)
         led = P(19.6, 59);
         translate([led[0], -wall / 2, pcb_top + 0.8]) rotate([90, 0, 0]) cylinder(d = 2.2, h = wall + 2, center = true);

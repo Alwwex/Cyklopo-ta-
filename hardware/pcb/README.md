@@ -100,11 +100,12 @@ python3 schematic.py           # schéma
 - `CykloPCB_v1.kicad_pcb` – otevřeš v **KiCadu 7+** a můžeš cokoliv upravit ručně
   (pak exportuj Gerbery z KiCadu: *File → Fabrication Outputs*).
 - `build/drc.rpt` – kontrola návrhových pravidel: 0 porušení, 0 nepřipojených
-  plošek. Když deska není čistá, skript výrobní data **nevytvoří** (`--force` to obejde).
+  plošek (řádky `lib_footprint_issues` = jen chybějící tabulka knihoven, nevadí). Když deska není čistá, skript výrobní data **nevytvoří** (`--force` to obejde).
 - `build/CykloPCB_v1.step` – 3D model desky (pro kontrolu v krabičce).
 
 Pravidla jsou nastavená bezpečně pro JLCPCB: cesty ≥ 0,25 mm (napájení 0,5 mm),
-mezery ≥ 0,2 mm, prokovy 0,7/0,3 mm (mezikruží 0,2 mm), měď ≥ 0,45 mm od okraje.
+mezery ≥ 0,2 mm, prokovy 0,7/0,3 mm (mezikruží 0,2 mm), měď ≥ 0,45 mm od rovných
+hran (v zaoblených rozích a u pinu 1 modulu ESP ≥ 0,3 mm).
 
 ### JLCPCB DFM kontrola (po úpravách v2)
 
@@ -112,8 +113,8 @@ mezery ≥ 0,2 mm, prokovy 0,7/0,3 mm (mezikruží 0,2 mm), měď ≥ 0,45 mm od
 |---|---|
 | Slot width (4 chyby) | sloty stínění USB-C 0,6 → **0,7 mm** (plošky 1,1 mm) |
 | Annular ring (62 varování) | prokovy 0,6/0,3 → **0,7/0,3 mm** |
-| tht to smd (1 chyba + 6 varování) | zemnicí prokovy už nejsou **v** plošce TP4056 (EP), ale 0,3 mm vedle, napojené cestou 0,5 mm; autorouter drží prokovy ≥ 0,3 mm od SMD plošek; LED + rezistory posunuté od GPS modulu |
-| Silkscreen to hole (4 chyby) | potisk se po routování ořízne ≥ 0,25 mm od každého otvoru, značky a texty se odsunou |
+| tht to smd (1 chyba + 6 varování) | zemnicí prokovy už nejsou **v** plošce TP4056 (EP), ale 0,3 mm vedle, napojené cestou 0,5 mm; autorouter drží prokovy ≥ 0,3 mm od SMD plošek; LED + rezistory posunuté dál od pinů modulu ESP32-C3-Zero |
+| Silkscreen to hole (4 chyby) | potisk se po routování ořízne ≥ 0,25 mm od každého otvoru a ≥ 0,2 mm od hrany desky, značky pinu 1 a texty se odsunou |
 | Silkscreen line width (50) | všechen potisk ≥ **0,16 mm** |
 | Negative soldermask expansion (38) | maska +0,05 mm kolem plošek (USB-C +0,025 mm) |
 | Soldermask multiple segments (4) | zdvojené plošky USB-C (A1/B12…) už nemají dvojitý otvor v masce |

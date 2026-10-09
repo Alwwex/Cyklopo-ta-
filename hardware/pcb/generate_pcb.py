@@ -381,7 +381,8 @@ def build_board():
         for poly in ([(-1, -1), (W + 1, -1), (W + 1, k), (-1, k)], [(-1, H - k), (W + 1, H - k), (W + 1, H + 1), (-1, H + 1)],
                      [(-1, -1), (k, -1), (k, H + 1), (-1, H + 1)], [(W - k, -1), (W + 1, -1), (W + 1, H + 1), (W - k, H + 1)]):
             add_zone(board, None, layer, poly, rule_area=True)
-    # 4 prokovy v chladici plosce TP4056 -> teplo do spodni zeme
+    # 4 zemnici prokovy u chladici plosky TP4056 (mimo plosku - JLC DFM "tht to smd"),
+    # s ploskou spojene cestou 0.5 mm -> teplo do spodni zeme
     u1 = board.FindFootprintByReference('U1')
     c = u1.GetPosition()
     for dx in (-0.6, 0.6):
@@ -595,6 +596,7 @@ def fix_silk(board):
     silk = (pcbnew.F_SilkS, pcbnew.B_SilkS)
     holes = _silk_holes(board)
     pads = {L: (_silk_pad_polys(board, L, mm(SILK_PAD_CLR + 0.1)) if SILK_PAD_CLR > 0 else []) for L in silk}  # +0.1 = pul sirky cary (<= 0.2)
+    pads_bb = {L: (_silk_pad_polys(board, L, mm(SILK_PAD_CLR)) if SILK_PAD_CLR > 0 else []) for L in silk}   # pro znacky: bbox uz obsahuje sirku cary
     n_w = n_cut = n_bad = 0
     for fp in board.GetFootprints():
         for t in (fp.Reference(), fp.Value()):
@@ -614,14 +616,14 @@ def fix_silk(board):
                 def poly_hits():
                     bb = g.GetBoundingBox()                 # obalovy obdelnik (vc. sirky cary), konzervativne
                     x0, y0, x1, y1 = bb.GetX(), bb.GetY(), bb.GetRight(), bb.GetBottom()
-                    lay = pads.get(g.GetLayer(), [])
+                    lay = pads_bb.get(g.GetLayer(), [])
                     for (ax, ay), (bx, by) in (((x0, y0), (x1, y0)), ((x1, y0), (x1, y1)), ((x1, y1), (x0, y1)), ((x0, y1), (x0, y0))):
                         if _cut_intervals(ax, ay, bx, by, holes, mm(SILK_HOLE_CLR), lay)[1]:
                             return True
                     return False
                 if poly_hits():
                     done = False
-                    for k in range(1, 9):
+                    for k in range(1, 13):                  # posun az o 0.6 mm
                         for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, 1), (1, -1), (-1, -1)):
                             v = pcbnew.VECTOR2I(dx * mm(0.05 * k), dy * mm(0.05 * k))
                             g.Move(v)
@@ -635,7 +637,8 @@ def fix_silk(board):
                         print(f'  znacka potisku {fp.GetReference()} posunuta o {0.05 * k:.2f} mm')
                     else:
                         g.SetLayer(pcbnew.F_Fab if g.GetLayer() == pcbnew.F_SilkS else pcbnew.B_Fab)
-                        print(f'  znacka potisku {fp.GetReference()} nejde posunout -> Fab')
+                        print(f'  POZOR: znacka potisku {fp.GetReference()} nejde posunout -> Fab (chybi orientace)')
+                        n_bad += 1
                 continue
             if g.GetShape() != pcbnew.SHAPE_T_SEGMENT:
                 continue
@@ -649,7 +652,8 @@ def fix_silk(board):
                                        [((bb[0] - ext, bb[1] - ext, bb[2] + ext, bb[3] + ext), ps) for bb, ps in pp] if pp else [])
             e = mm(SILK_EDGE_CLR) + ext
             inside = _clip_rect(a.x, a.y, b.x, b.y, e, e, mm(W) - e, mm(H) - e)
-            if inside != (0.0, 1.0):
+            edge_hit = inside != (0.0, 1.0)
+            if edge_hit:
                 hit = True
                 keep = [(max(t0, inside[0]), min(t1, inside[1])) for t0, t1 in keep
                         if inside and min(t1, inside[1]) > max(t0, inside[0])]
@@ -658,7 +662,7 @@ def fix_silk(board):
             # kratke znacky (napr. katodova carka) nejdriv zkusit odsunout o <= 0.1 mm, teprve pak orezat
             L0 = math.hypot(b.x - a.x, b.y - a.y)
             kept0 = sum((t1 - t0) * L0 for t0, t1 in keep if (t1 - t0) * L0 >= mm(SILK_MIN_SEG))
-            if kept0 < 0.5 * L0:
+            if kept0 < 0.5 * L0 and not edge_hit:   # cara u hrany desky se jen orizne
                 lay = [((bb[0] - ext, bb[1] - ext, bb[2] + ext, bb[3] + ext), ps) for bb, ps in pp] if pp else []
                 done = None
                 for k in range(1, 5):
@@ -848,6 +852,10 @@ def main():
     print(f'DRC: {len(real)} poruseni ({", ".join(sorted(set(real))) or "zadna"}), {nunc} nepripojenych padu (build/drc.rpt)')
     # nedoroutovana deska nebo potisk na otvoru se nesmi dostat do ZIPu pro vyrobu
     if (nunc != 0 or real or silk_bad) and not args.force:
+        for f in (f'{NAME}_gerber_JLCPCB.zip', f'{NAME}_BOM_JLCPCB.csv', f'{NAME}_CPL_JLCPCB.csv',
+                  f'{NAME}_rucni_osazeni.csv', f'{NAME}.step'):
+            if os.path.exists(os.path.join(out, f)):
+                os.remove(os.path.join(out, f))      # stara data by k nove desce nesedela
         sys.exit('STOP: deska neni cista (DRC / nepripojene pady / potisk) - vyrobni data NEvytvorena. '
                  'Zkus vic --passes, uprav rozmisteni, nebo --force.')
     fab_outputs(pcb_path, out, board)
