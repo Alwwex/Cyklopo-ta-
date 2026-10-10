@@ -167,6 +167,117 @@ for i, t in enumerate(['M', 'S', 'P', 'G']):
     SILK.append((t, 13.0 + i * 2.54, 16.7, 0.8, 0))
 
 
+# ===========================================================================
+# VARIANTA "RUCNI" (--variant hand): objednas jen holy plosny spoj a vse
+# zapajis sam. Vetsi soucastky (1206, SOT-223, SMA, THT) a misto USB-C + TP4056
+# na desce se pouzije hotovy modul "TP4056 Type-C" (nalepi se oboustrannou
+# paskou na desku, USB-C k zadni hrane, 3-4 kratke dratky na plosky IN+/IN-/OUT+/OUT-).
+#   modul IN+  --VBUS--> D3 (load sharing) + Q1 gate + detekce USB
+#   modul OUT+ --BAT+--> Q1 ;  IN- / OUT- -> GND ; baterie na B+/B- modulu
+# Zbytek zapojeni (vypinac, LDO, mereni baterie, spinani GPS a podsviceni,
+# tlacitka, ESP) je stejny jako ve variante pro JLC -> stejny firmware (BOARD_PROFILE 1).
+# ===========================================================================
+NAME_HAND = 'CykloPCB_v1_rucni'
+R1206 = ('Resistor_SMD', 'R_1206_3216Metric_Pad1.30x1.75mm_HandSolder')
+C1206 = ('Capacitor_SMD', 'C_1206_3216Metric_Pad1.33x1.80mm_HandSolder')
+SOT23H = ('Package_TO_SOT_SMD', 'SOT-23_Handsoldering')
+SMAH = ('Diode_SMD', 'D_SMA_Handsoldering')
+LDO_FP = ('Package_TO_SOT_SMD', 'SOT-223-3_TabPin2')
+LDO_PART = 'MCP1825S-3302E/DB'
+LDO_PINS = {'1': 'VSW', '2': 'GND', '3': '3V3'}          # SOT-223: 1 VIN, 2 GND (+ chladici plocha), 3 VOUT
+
+# modul TP4056 Type-C: obrys (sirka x delka) a plosky pro dratky, souradnice od stredu
+# modulu, USB-C konec je +y (dolni hrana desky)
+MOD_W, MOD_L = 17.6, 28.2
+MOD_PADS = [  # (cislo, x, y, popisek, sit)
+    ('1', MOD_W / 2 + 1.6, MOD_L / 2 - 2.6, 'IN+', 'VBUS'),
+    ('2', MOD_W / 2 + 1.6, MOD_L / 2 - 5.6, 'IN-', 'GND'),
+    ('3', -2.6, -MOD_L / 2 - 1.7, 'OUT+', 'BAT+'),
+    ('4', 2.6, -MOD_L / 2 - 1.7, 'OUT-', 'GND'),
+]
+
+PARTS_HAND = [
+    # --- nabijeci modul TP4056 Type-C (uz ho mas) ---
+    ('A1', 'TP4056MOD', 'TP4056 USB-C modul', 11.5, 49.4, 0, {m[0]: m[4] for m in MOD_PADS}, False),
+    # --- load sharing + vypinac + LDO ---
+    ('D3', SMAH, 'SS34', 11.0, 33.2, 0, {'1': 'SYS', '2': 'VBUS'}, False),
+    ('Q1', SOT23H, 'AO3401A', 18.2, 33.4, 0, {'1': 'VBUS', '2': 'SYS', '3': 'BAT+'}, False),
+    ('R6', R1206, '100k', 22.6, 33.4, 90, {'1': 'VBUS', '2': 'GND'}, False),
+    ('C3', C1206, '10uF', 15.0, 29.4, 0, {'1': 'SYS', '2': 'GND'}, False),
+    ('SW1', ('Button_Switch_THT', 'SW_Slide_SPDT_Angled_CK_OS102011MA1Q'), 'ON/OFF', 2.7, 30.0, -90,
+     {'1': 'SYS', '2': 'VSW', '3': ''}, False),
+    ('U2', LDO_FP, LDO_PART, 11.4, 23.6, 0, LDO_PINS, False),
+    ('C4', C1206, '10uF', 6.6, 24.4, 90, {'1': 'VSW', '2': 'GND'}, False),
+    ('C6', C1206, '10uF', 17.0, 22.2, 90, {'1': '3V3', '2': 'GND'}, False),
+    ('C7', C1206, '100nF', 17.0, 26.2, 90, {'1': '3V3', '2': 'GND'}, False),
+    # --- mereni baterie (delic 1:2 -> GPIO0) ---
+    ('R7', R1206, '100k', 27.0, 39.2, 0, {'1': 'VSW', '2': 'BAT_SENSE'}, False),
+    ('R8', R1206, '100k', 27.0, 36.4, 0, {'1': 'BAT_SENSE', '2': 'GND'}, False),
+    ('C5', C1206, '100nF', 31.6, 37.8, 90, {'1': 'BAT_SENSE', '2': 'GND'}, False),
+    # --- ESP32-C3-Zero ---
+    ('U3', 'C3ZERO', 'ESP32-C3-Zero', 32.0, 52.7, 180,
+     {'1': '', '2': 'GND', '3': '3V3', '4': 'BAT_SENSE', '5': 'TFT_RST', '6': 'TFT_DC', '7': 'TFT_CS',
+      '8': 'TFT_SCLK', '9': 'BTN1', '10': 'TFT_MOSI', '11': 'BL_PWM', '12': 'BTN2', '13': 'BTN3',
+      '14': 'GPS_EN', '15': '', '16': '', '17': 'GPS_TXD', '18': 'GPS_RXD'}, False),
+    # --- displej ---
+    ('J2', ('Connector_PinHeader_2.54mm', 'PinHeader_1x08_P2.54mm_Vertical'), 'TFT', 7.8, 3.2, 90,
+     {'1': 'GND', '2': '3V3', '3': 'TFT_SCLK', '4': 'TFT_MOSI', '5': 'TFT_RST', '6': 'TFT_DC', '7': 'TFT_CS', '8': 'TFT_BLK'}, False),
+    ('Q3', SOT23H, 'AO3401A', 21.6, 10.4, 90, {'1': 'BL_G', '2': '3V3', '3': 'TFT_BLK'}, False),
+    ('R11', R1206, '100k', 25.6, 9.6, 90, {'1': '3V3', '2': 'BL_G'}, False),
+    ('R12', R1206, '1k', 25.6, 14.4, 90, {'1': 'BL_G', '2': 'BL_PWM'}, False),
+    # --- GPS ---
+    ('J3', ('Connector_PinHeader_2.54mm', 'PinHeader_1x04_P2.54mm_Vertical'), 'GPS', 29.9, 3.2, 90,
+     {'1': 'GPS_VCC', '2': 'GND', '3': 'GPS_TXD', '4': 'GPS_RXD'}, False),
+    ('Q2', SOT23H, 'AO3401A', 31.0, 10.4, 90, {'1': 'GPS_G', '2': '3V3', '3': 'GPS_VCC'}, False),
+    ('R9', R1206, '100k', 34.8, 9.6, 90, {'1': '3V3', '2': 'GPS_G'}, False),
+    ('R10', R1206, '1k', 34.8, 14.4, 90, {'1': 'GPS_G', '2': 'GPS_EN'}, False),
+    ('C8', C1206, '100nF', 28.4, 10.0, 90, {'1': 'GPS_VCC', '2': 'GND'}, False),
+    # --- tlacitka ---
+    ('SW2', ('Button_Switch_THT', 'SW_Tactile_SPST_Angled_PTS645Vx31-2LFS'), 'MODE', 2.5, 19.6, 90,
+     {'1': 'BTN1', '2': 'GND'}, False),
+    ('SW3', ('Button_Switch_THT', 'SW_Tactile_SPST_Angled_PTS645Vx31-2LFS'), 'START', 40.5, 15.6, -90,
+     {'1': 'BTN2', '2': 'GND'}, False),
+    ('SW4', ('Button_Switch_THT', 'SW_Tactile_SPST_Angled_PTS645Vx31-2LFS'), 'PAUSE', 40.5, 26.4, -90,
+     {'1': 'BTN3', '2': 'GND'}, False),
+    ('R13', R1206, '100k', 21.0, 20.4, 0, {'1': '3V3', '2': 'BTN1'}, False),
+    ('R14', R1206, '10k', 30.0, 21.0, 0, {'1': '3V3', '2': 'BTN2'}, False),
+    ('J5', ('Connector_PinHeader_2.54mm', 'PinHeader_1x04_P2.54mm_Vertical'), 'BTN ext', 13.0, 14.0, 90,
+     {'1': 'BTN1', '2': 'BTN2', '3': 'BTN3', '4': 'GND'}, False),
+    # --- montazni otvory M2.5 (H3 vlevo dole odpada - je tam modul) ---
+    ('H1', ('MountingHole', 'MountingHole_2.7mm_M2.5'), 'M2.5', 3.4, 9.0, 0, {}, False),
+    ('H2', ('MountingHole', 'MountingHole_2.7mm_M2.5'), 'M2.5', 39.6, 9.0, 0, {}, False),
+    ('H4', ('MountingHole', 'MountingHole_2.7mm_M2.5'), 'M2.5', 39.6, 37.6, 0, {}, False),
+]
+
+SILK_HAND = [
+    ('CykloPCB v1 R', 30.0, 30.4, 1.1, 0),
+    ('rucni osazeni', 30.0, 32.2, 0.8, 0),
+    ('TFT', 3.6, 3.2, 1.0, 0),
+    ('GPS', 27.75, 3.2, 0.8, 90),
+    ('ON', 5.6, 35.2, 1.0, 0),
+    ('MODE', 3.4, 25.0, 0.8, 0),
+    ('START', 36.2, 12.0, 0.8, 0),
+    ('PAUZA', 34.5, 23.4, 0.8, 0),
+    ('ESP USB', 32.0, 39.6, 0.8, 0),
+]
+for i, t in enumerate(['G', 'V', 'CK', 'DA', 'RS', 'DC', 'CS', 'BL']):
+    SILK_HAND.append((t, 7.8 + i * 2.54, 5.6, 0.8, 0))
+for i, t in enumerate(['V', 'G', 'TX', 'RX']):
+    SILK_HAND.append((t, 29.9 + i * 2.54, 5.6, 0.8, 0))
+for i, t in enumerate(['M', 'S', 'P', 'G']):
+    SILK_HAND.append((t, 13.0 + i * 2.54, 16.7, 0.8, 0))
+
+# popisky soucastek (R7, C3...) na potisku: {ref: (x, y, rot)}; ktere tu nejsou, umisti se samy
+REF_POS_HAND = {}
+REF_SIZE_HAND = 0.9
+REF_MISSING = []
+
+# kde koupit (CZ) - doplni se i do seznamu soucastek
+SHOP_HAND = {}
+
+VARIANT = 'jlc'
+
+
 # ---------------------------------------------------------------------------
 def load_fp(lib, name):
     fp = pcbnew.FootprintLoad(f'{FP_LIB}/{lib}.pretty', name)
@@ -218,6 +329,114 @@ def make_c3zero(board):
         line(layer, x0, y0, x1, y0, 0.05); line(layer, x1, y0, x1, y1, 0.05)
         line(layer, x1, y1, x0, y1, 0.05); line(layer, x0, y1, x0, y0, 0.05)
     return fp
+
+
+def make_tp4056_module(board):
+    """Misto pro nabijeci modul TP4056 Type-C (nalepi se na desku) + plosky pro dratky.
+    Pod modulem nesmi byt zadna soucastka (courtyard = obrys modulu)."""
+    fp = pcbnew.FOOTPRINT(board)
+    fp.SetFPID(pcbnew.LIB_ID('CykloPCB', 'TP4056_TypeC_module_wired'))
+    for num, x, y, _lab, _net in MOD_PADS:
+        p = pcbnew.PAD(fp)
+        p.SetNumber(num)
+        p.SetAttribute(pcbnew.PAD_ATTRIB_PTH)
+        p.SetShape(pcbnew.PAD_SHAPE_RECT if num == '1' else pcbnew.PAD_SHAPE_CIRCLE)
+        p.SetSize(pcbnew.VECTOR2I(mm(2.0), mm(2.0)))
+        p.SetDrillSize(pcbnew.VECTOR2I(mm(1.0), mm(1.0)))
+        p.SetLayerSet(p.PTHMask())
+        fp.Add(p)
+        p.SetPos0(pcbnew.VECTOR2I(mm(x), mm(y)))
+        p.SetPosition(pcbnew.VECTOR2I(mm(x), mm(y)))
+
+    def line(layer, x1, y1, x2, y2, w):
+        s = pcbnew.FP_SHAPE(fp)
+        s.SetShape(pcbnew.SHAPE_T_SEGMENT)
+        s.SetLayer(layer)
+        fp.Add(s)
+        s.SetStart0(pcbnew.VECTOR2I(mm(x1), mm(y1)))
+        s.SetEnd0(pcbnew.VECTOR2I(mm(x2), mm(y2)))
+        s.SetDrawCoord()
+        s.SetWidth(mm(w))
+    hw, hl = MOD_W / 2, MOD_L / 2
+    for layer, d, w in ((pcbnew.F_Fab, 0, 0.1), (pcbnew.F_SilkS, 0.2, SILK_W), (pcbnew.F_CrtYd, 0.3, 0.05)):
+        x0, y0, x1, y1 = -hw - d, -hl - d, hw + d, hl + d
+        if layer == pcbnew.F_SilkS:      # carkovany obrys = sem prijde modul
+            for (ax, ay, bx, by) in ((x0, y0, x1, y0), (x1, y0, x1, y1), (x0, y1, x0, y0)):
+                L = math.hypot(bx - ax, by - ay)
+                n = int(L // 2.0)
+                for k in range(n):
+                    t0, t1 = k / n, (k + 0.55) / n
+                    line(layer, ax + (bx - ax) * t0, ay + (by - ay) * t0, ax + (bx - ax) * t1, ay + (by - ay) * t1, w)
+        else:
+            line(layer, x0, y0, x1, y0, w); line(layer, x1, y0, x1, y1, w)
+            line(layer, x1, y1, x0, y1, w); line(layer, x0, y1, x0, y0, w)
+    # courtyard i kolem plosek pro dratky
+    for num, x, y, _lab, _net in MOD_PADS:
+        line(pcbnew.F_CrtYd, x - 1.3, y - 1.3, x + 1.3, y - 1.3, 0.05)
+        line(pcbnew.F_CrtYd, x + 1.3, y - 1.3, x + 1.3, y + 1.3, 0.05)
+        line(pcbnew.F_CrtYd, x + 1.3, y + 1.3, x - 1.3, y + 1.3, 0.05)
+        line(pcbnew.F_CrtYd, x - 1.3, y + 1.3, x - 1.3, y - 1.3, 0.05)
+    return fp
+
+
+def text_bbox(text, x, y, size, rot):
+    """priblizny obdelnik textu (stredove zarovnani) v mm"""
+    w, h = len(text) * size * 0.9 + 0.2, size + 0.3
+    if rot % 180 == 90:
+        w, h = h, w
+    return x - w / 2, y - h / 2, x + w / 2, y + h / 2
+
+
+def auto_ref_labels(board, skip):
+    """Popisky soucastek na potisk (pro rucni osazeni): nad / pod / vedle soucastky,
+    tak aby se neprekryvaly s jinymi soucastkami, popisky ani otvory."""
+    TM = pcbnew.ToMM
+    S = REF_SIZE_HAND
+    boxes = []
+    for f in board.GetFootprints():
+        x0, y0, x1, y1 = courtyard_bbox(f)
+        boxes.append((f.GetReference(), (TM(x0), TM(y0), TM(x1), TM(y1))))
+    taken = [text_bbox(*t[:3], t[3], t[4]) for t in SILK]
+    for d in board.GetDrawings():
+        if isinstance(d, pcbnew.PCB_TEXT):
+            bb = d.GetBoundingBox()
+            taken.append((TM(bb.GetX()), TM(bb.GetY()), TM(bb.GetRight()), TM(bb.GetBottom())))
+
+    def free(bb, own):
+        if bb[0] < 0.6 or bb[1] < 0.6 or bb[2] > W - 0.6 or bb[3] > H - 0.6:
+            return False
+        for ref, b in boxes:
+            if ref != own and bb[0] < b[2] and b[0] < bb[2] and bb[1] < b[3] and b[1] < bb[3]:
+                return False
+        for b in taken:
+            if bb[0] < b[2] and b[0] < bb[2] and bb[1] < b[3] and b[1] < bb[3]:
+                return False
+        return True
+    out, missing = [], []
+    for ref, (x0, y0, x1, y1) in sorted(boxes):
+        if ref in skip:
+            continue
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        if ref in REF_POS_HAND:
+            x, y, rot = REF_POS_HAND[ref]
+            cand = [(x, y, rot)]
+        else:
+            g = 0.15 + S / 2 + 0.15
+            cand = [(cx, y0 - g, 0), (cx, y1 + g, 0), (x1 + g + len(ref) * S * 0.45, cy, 0),
+                    (x0 - g - len(ref) * S * 0.45, cy, 0), (x1 + g, cy, 90), (x0 - g, cy, 90)]
+        for x, y, rot in cand:
+            bb = text_bbox(ref, x, y, S, rot)
+            if ref in REF_POS_HAND or free(bb, ref):
+                add_text(board, ref, x, y, S, rot)
+                taken.append(bb)
+                out.append(ref)
+                break
+        else:
+            missing.append(ref)
+    if missing:
+        print('  POZOR: popisek se nevesel:', ', '.join(missing), '(dopln REF_POS_HAND)')
+    REF_MISSING[:] = missing
+    return missing
 
 
 def add_edge(board):
@@ -341,13 +560,19 @@ def build_board():
         return nets[name]
 
     for ref, fpdef, value, x, y, rot, padmap, _jlc in PARTS:
-        fp = make_c3zero(board) if fpdef == 'C3ZERO' else load_fp(*fpdef)
+        if fpdef == 'C3ZERO':
+            fp = make_c3zero(board)
+        elif fpdef == 'TP4056MOD':
+            fp = make_tp4056_module(board)
+        else:
+            fp = load_fp(*fpdef)
         fp.SetReference(ref)
         fp.SetValue(value)
         fp.Reference().SetTextSize(pcbnew.VECTOR2I(mm(0.8), mm(0.8)))
         fp.Reference().SetTextThickness(mm(SILK_W))
         fp.Reference().SetVisible(False)   # popisky jsou vlastni (SILK), refs jsou v BOM/CPL
-        fp.Value().SetVisible(False)
+        fp.Value().SetVisible(VARIANT == 'hand')   # rucni varianta: hodnoty na F.Fab -> osazovaci vykres
+        fp.Value().SetLayer(pcbnew.F_Fab)
         board.Add(fp)
         fp.SetPosition(pcbnew.VECTOR2I(mm(x), mm(y)))
         fp.SetOrientationDegrees(rot)
@@ -368,7 +593,7 @@ def build_board():
             for p in fp.Pads():
                 if p.GetNumber() in ('B1', 'B4', 'B9', 'B12'):
                     ls = p.GetLayerSet(); ls.RemoveLayer(pcbnew.F_Mask); ls.RemoveLayer(pcbnew.F_Paste); p.SetLayerSet(ls)
-        lcsc = LCSC.get(value)
+        lcsc = LCSC.get(value) if VARIANT == 'jlc' else None
         if lcsc and hasattr(fp, 'SetProperty'):
             fp.SetProperty('LCSC', lcsc)
 
@@ -384,8 +609,8 @@ def build_board():
     # 4 zemnici prokovy u chladici plosky TP4056 (mimo plosku - JLC DFM "tht to smd"),
     # s ploskou spojene cestou 0.5 mm -> teplo do spodni zeme
     u1 = board.FindFootprintByReference('U1')
-    c = u1.GetPosition()
-    for dx in (-0.6, 0.6):
+    c = u1.GetPosition() if u1 else None
+    for dx in ((-0.6, 0.6) if u1 else ()):
         for dy in (-2.3, 2.3):
             v = pcbnew.PCB_VIA(board)
             v.SetPosition(pcbnew.VECTOR2I(c.x + mm(dx), c.y + mm(dy)))
@@ -403,6 +628,22 @@ def build_board():
     # pod modulem ESP nesmi byt na horni strane cesty ani prokovy (zkrat na jeho spodni pady)
     add_zone(board, None, pcbnew.F_Cu,
              [(24.5, 42.0), (39.5, 42.0), (39.5, 64.5), (24.5, 64.5)], rule_area=True)
+    a1 = board.FindFootprintByReference('A1')
+    if a1:
+        # popisky plosek modulu + napis do obrysu modulu
+        c = a1.GetPosition()
+        for num, x, y, lab, _net in MOD_PADS:
+            px, py = pcbnew.ToMM(c.x) + x, pcbnew.ToMM(c.y) + y
+            if abs(x) > MOD_W / 2:                        # plosky vedle modulu -> popisek vedle plosky
+                add_text(board, lab, px + (2.0 + len(lab) * 0.36) * (1 if x > 0 else -1), py, 0.8)
+            else:                                         # plosky za koncem modulu -> popisek nad
+                add_text(board, lab, px, py - 1.9 if y < 0 else py + 1.9, 0.8)
+        cx, cy = pcbnew.ToMM(c.x), pcbnew.ToMM(c.y)
+        add_text(board, 'NABIJECI MODUL', cx, cy - 2.0, 1.0)
+        add_text(board, 'TP4056 USB-C', cx, cy, 1.0)
+        add_text(board, 'USB-C k hrane', cx, cy + 2.0, 0.8)
+    if VARIANT == 'hand':
+        auto_ref_labels(board, skip={'U3', 'J2', 'J3', 'J5', 'A1', 'H1', 'H2', 'H3', 'H4'})
     return board, nets
 
 
@@ -765,6 +1006,8 @@ def fab_outputs(pcb_path, outdir, board):
             if not f.endswith('drl_map.gbr'):
                 z.write(os.path.join(gdir, f), f)
 
+    if VARIANT == 'hand':
+        hand_outputs(pcb_path, outdir, board)
     # BOM + CPL ve formatu JLCPCB (jen SMD dily, ktere osadi JLC)
     jlc_refs = {p[0] for p in PARTS if p[7]}
     groups = {}
@@ -779,24 +1022,25 @@ def fab_outputs(pcb_path, outdir, board):
         pos = fp.GetPosition()
         cpl.append([ref, f'{pcbnew.ToMM(pos.x):.3f}mm', f'{-pcbnew.ToMM(pos.y):.3f}mm', 'Top',
                     f'{fp.GetOrientationDegrees() % 360:.0f}'])
-    with open(os.path.join(outdir, f'{NAME}_BOM_JLCPCB.csv'), 'w', newline='') as f:
-        w = csv.writer(f)
-        w.writerow(['Comment', 'Designator', 'Footprint', 'LCSC Part #'])
-        for (val, fpname), refs in sorted(groups.items()):
-            w.writerow([val, ','.join(sorted(refs, key=lambda r: (r[0], int(re.sub(r'\D', '', r) or 0)))),
-                        fpname, LCSC.get(val, '')])
-    with open(os.path.join(outdir, f'{NAME}_CPL_JLCPCB.csv'), 'w', newline='') as f:
-        w = csv.writer(f)
-        w.writerow(['Designator', 'Mid X', 'Mid Y', 'Layer', 'Rotation'])
-        w.writerows(sorted(cpl))
+    if jlc_refs:
+        with open(os.path.join(outdir, f'{NAME}_BOM_JLCPCB.csv'), 'w', newline='') as f:
+            w = csv.writer(f)
+            w.writerow(['Comment', 'Designator', 'Footprint', 'LCSC Part #'])
+            for (val, fpname), refs in sorted(groups.items()):
+                w.writerow([val, ','.join(sorted(refs, key=lambda r: (r[0], int(re.sub(r'\D', '', r) or 0)))),
+                            fpname, LCSC.get(val, '')])
+        with open(os.path.join(outdir, f'{NAME}_CPL_JLCPCB.csv'), 'w', newline='') as f:
+            w = csv.writer(f)
+            w.writerow(['Designator', 'Mid X', 'Mid Y', 'Layer', 'Rotation'])
+            w.writerows(sorted(cpl))
 
-    # rucne pajene dily (THT) - seznam pro nakup
-    with open(os.path.join(outdir, f'{NAME}_rucni_osazeni.csv'), 'w', newline='') as f:
-        w = csv.writer(f)
-        w.writerow(['Oznaceni', 'Dil', 'Pouzdro'])
-        for ref, fpdef, value, *_rest in PARTS:
-            if not _rest[-1] and not ref.startswith('H'):
-                w.writerow([ref, value, fpdef if isinstance(fpdef, str) else fpdef[1]])
+        # rucne pajene dily (THT) - seznam pro nakup
+        with open(os.path.join(outdir, f'{NAME}_rucni_osazeni.csv'), 'w', newline='') as f:
+            w = csv.writer(f)
+            w.writerow(['Oznaceni', 'Dil', 'Pouzdro'])
+            for ref, fpdef, value, *_rest in PARTS:
+                if not _rest[-1] and not ref.startswith('H'):
+                    w.writerow([ref, value, fpdef if isinstance(fpdef, str) else fpdef[1]])
 
     # nahledy desky
     for side, layers in (('top', 'F.Cu,F.SilkS,F.Mask,Edge.Cuts'), ('bottom', 'B.Cu,B.SilkS,B.Mask,Edge.Cuts')):
@@ -808,6 +1052,31 @@ def fab_outputs(pcb_path, outdir, board):
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
+def _refkey(r):
+    return (re.sub(r'\d', '', r), int(re.sub(r'\D', '', r) or 0))
+
+
+def hand_outputs(pcb_path, outdir, board):
+    """Rucni varianta: seznam soucastek k nakupu + osazovaci vykres (hodnoty u soucastek)."""
+    groups = {}
+    for ref, fpdef, value, *_rest in PARTS:
+        if ref.startswith('H'):
+            continue
+        pkg = {'C3ZERO': 'modul na listach', 'TP4056MOD': 'hotovy modul'}.get(fpdef) if isinstance(fpdef, str) else fpdef[1]
+        pkg = re.sub(r'_\d+Metric.*|_HandSolder.*|_Handsoldering', '', pkg)
+        groups.setdefault((value, pkg), []).append(ref)
+    with open(os.path.join(outdir, f'{NAME}_soucastky.csv'), 'w', newline='') as f:
+        w = csv.writer(f)
+        w.writerow(['Hodnota', 'Pouzdro', 'Kusu', 'Oznaceni na desce', 'Kde koupit / poznamka'])
+        order = lambda kv: (kv[1][0][0] not in 'RCDQU', sorted(kv[1], key=_refkey)[0][0], kv[0][0])
+        for (val, pkg), refs in sorted(groups.items(), key=order):
+            w.writerow([val, pkg, len(refs), ' '.join(sorted(refs, key=_refkey)), SHOP_HAND.get(val, '')])
+    svg = os.path.join(outdir, f'{NAME}_osazovaci_vykres.svg')
+    subprocess.run(['kicad-cli', 'pcb', 'export', 'svg', '--output', svg,
+                    '--layers', 'F.Fab,F.SilkS,F.Cu,Edge.Cuts', '--exclude-drawing-sheet', '--page-size-mode', '2',
+                    pcb_path], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--freerouting', default=os.environ.get('FREEROUTING_JAR', 'freerouting-1.9.0.jar'))
@@ -815,9 +1084,15 @@ def main():
     ap.add_argument('--place-only', action='store_true')
     ap.add_argument('--reuse-ses', action='store_true', help='nepoustet Freerouting, pouzit build/*.ses')
     ap.add_argument('--force', action='store_true', help='vyrobni data i pri chybach DRC / neroutovanych spojich')
+    ap.add_argument('--variant', choices=['jlc', 'hand'], default='jlc',
+                    help='jlc = osazeni SMD u JLCPCB (0603); hand = holy spoj, vse pajis sam (1206 + modul TP4056)')
     args = ap.parse_args()
 
-    out = os.path.join(HERE, 'build')
+    global PARTS, SILK, NAME, VARIANT
+    VARIANT = args.variant
+    if VARIANT == 'hand':
+        PARTS, SILK, NAME = PARTS_HAND, SILK_HAND, NAME_HAND
+    out = os.path.join(HERE, 'build' if VARIANT == 'jlc' else 'build_rucni')
     os.makedirs(out, exist_ok=True)
     board, nets = build_board()
     bad = check_overlaps(board)
@@ -825,6 +1100,8 @@ def main():
         print('PREKRYVY courtyard:')
         for b in bad:
             print('  ', b)
+        if not args.force and not args.place_only:
+            sys.exit('STOP: soucastky se prekryvaji - uprav pozice v PARTS (nebo --force)')
     pcb_path = os.path.join(HERE, f'{NAME}.kicad_pcb')
     if args.place_only:
         board.Save(pcb_path)
@@ -838,7 +1115,7 @@ def main():
             os.remove(ses)
         run_freerouting(args.freerouting, dsn, ses, args.passes)
     import_ses(board, nets, ses)
-    silk_bad = fix_silk(board)
+    silk_bad = fix_silk(board) + len(REF_MISSING)
     add_zones_only(board, nets)
     board.Save(pcb_path)
     # zony se spolehlive vyleji jen na desce nactene ze souboru (s projektem)
@@ -853,7 +1130,8 @@ def main():
     # nedoroutovana deska nebo potisk na otvoru se nesmi dostat do ZIPu pro vyrobu
     if (nunc != 0 or real or silk_bad) and not args.force:
         for f in (f'{NAME}_gerber_JLCPCB.zip', f'{NAME}_BOM_JLCPCB.csv', f'{NAME}_CPL_JLCPCB.csv',
-                  f'{NAME}_rucni_osazeni.csv', f'{NAME}.step'):
+                  f'{NAME}_rucni_osazeni.csv', f'{NAME}.step', f'{NAME}_soucastky.csv',
+                  f'{NAME}_osazovaci_vykres.svg'):
             if os.path.exists(os.path.join(out, f)):
                 os.remove(os.path.join(out, f))      # stara data by k nove desce nesedela
         sys.exit('STOP: deska neni cista (DRC / nepripojene pady / potisk) - vyrobni data NEvytvorena. '

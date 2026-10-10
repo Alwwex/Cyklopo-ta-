@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Realisticky nahled desky (zelena maska, zlate plosky, bily potisk) z KiCad vrstev.
-Pouziti: python3 render_preview.py   -> build/CykloPCB_v1_preview_{top,bottom}.png
+Pouziti: python3 render_preview.py        -> build/CykloPCB_v1_preview_{top,bottom}.png
+         python3 render_preview.py hand   -> build_rucni/CykloPCB_v1_rucni_preview_{top,bottom}.png
 Potrebuje: kicad-cli, pip install cairosvg pillow numpy"""
 import io
 import os
 import subprocess
+import sys
 import tempfile
 
 import cairosvg
@@ -12,8 +14,10 @@ import numpy as np
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PCB = os.path.join(HERE, 'CykloPCB_v1.kicad_pcb')
-OUT = os.path.join(HERE, 'build')
+HAND = len(sys.argv) > 1 and sys.argv[1] == 'hand'
+NAME = 'CykloPCB_v1_rucni' if HAND else 'CykloPCB_v1'
+PCB = os.path.join(HERE, f'{NAME}.kicad_pcb')
+OUT = os.path.join(HERE, 'build_rucni' if HAND else 'build')
 WIDTH = 900
 
 FR4 = (40, 70, 40)          # deska bez medi pod maskou
@@ -70,7 +74,7 @@ def render(side):
     img[inside & silk & ~mask_open] = SILK
     img[inside & holes] = HOLE
     img[edge] = (90, 90, 90)
-    out = os.path.join(OUT, f'CykloPCB_v1_preview_{side}.png')
+    out = os.path.join(OUT, f'{NAME}_preview_{side}.png')
     Image.fromarray(img).save(out)
     print(out)
 

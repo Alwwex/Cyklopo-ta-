@@ -24,9 +24,22 @@ r_out     = 4.0;    // zaobleni rohu
 fit       = 0.25;   // vule mezi dily (zvetsi, kdyz to jde ztuha)
 
 /* [Plosny spoj CykloPCB v1] */
+// "jlc"   = deska osazena z JLCPCB (USB-C a nabijecka primo na desce)
+// "rucni" = rucne pajena deska CykloPCB v1 R + nalepeny nabijeci modul TP4056 USB-C
+pcb_variant = "jlc";
 pcb       = [43, 64, 1.6];
+hand      = pcb_variant == "rucni";
 // montazni otvory M2.5 (souradnice KiCad: x zleva, y od horni hrany = konektory displeje)
-pcb_holes = [[3.4, 9.0], [39.6, 9.0], [3.0, 60.6], [39.6, 37.6]];
+pcb_holes = hand ? [[3.4, 9.0], [39.6, 9.0], [39.6, 37.6]]
+                 : [[3.4, 9.0], [39.6, 9.0], [3.0, 60.6], [39.6, 37.6]];
+pcb_rests = hand ? [[3.0, 60.6]] : [];      // podpery pod PCB bez sroubu (rucni: roh pod modulem)
+sw1_y     = hand ? 30.0 : 45.0;            // vypinac SW1 na PCB (KiCad y)
+// rucni varianta: nabijeci modul lezi na PCB (paska + deska modulu), USB-C je proto vys
+mod_xy    = [11.5, 49.4];                  // stred modulu na PCB (KiCad)
+mod_size  = [17.6, 28.2];
+mod_t     = 1.0 + 1.2;                     // oboustranna paska + tloustka desky modulu
+usbc_x    = hand ? mod_xy[0] : 11.5;
+usbc_z    = hand ? 1.6 + mod_t : 1.6;      // stred nabijeciho USB-C nad PCB
 esp_on_pins = true; // ESP32-C3-Zero na kolickove liste (true) / naplocho (false)
 standoff_h = 2.5;   // mezera pod PCB (zkrat vyvody THT na 1.5 mm)
 comp_h    = esp_on_pins ? 7.4 : 6.8;  // nejvyssi soucastka nad PCB (ESP+USB-C, uhlova tlacitka)
@@ -107,8 +120,8 @@ module base() {
         rrect([W_in, L_in], r_out - wall, H_in + 1);
 
         // --- zadni stena: USB-C nabijeni (J1) a USB-C ESP (programovani)
-        j1 = P(11.5, 64);
-        translate([j1[0], -wall / 2, pcb_top + 1.6]) rounded_slot(12.5, 7.0, wall + 2);
+        j1 = P(usbc_x, 64);
+        translate([j1[0], -wall / 2, pcb_top + usbc_z]) rounded_slot(12.5, 7.0, wall + 2);
         esp = P(32.0, 64);
         esp_z = pcb_top + (esp_on_pins ? 2.5 : 0) + 1.0 + 1.6;
         translate([esp[0], -wall / 2, esp_z]) rounded_slot(12.5, 7.5, wall + 2);
@@ -119,7 +132,7 @@ module base() {
         translate([led[0], -wall / 2, pcb_top + 0.8]) rotate([90, 0, 0]) cylinder(d = 2.2, h = wall + 2, center = true);
 
         // --- leva stena: vypinac + tlacitko MODE
-        sw1 = P(2.7, 47.0);
+        sw1 = P(2.7, sw1_y + 2.0);
         translate([-wall / 2, sw1[1], pcb_top + 1.8]) rotate([0, 0, 90]) rounded_slot(7.0, 3.2, wall + 2);
         btn1 = P(2.5, 17.35);
         translate([-wall / 2, btn1[1], pcb_top + 3.4]) rotate([0, 90, 0]) cylinder(d = 4.2, h = wall + 2, center = true);
@@ -156,6 +169,7 @@ module base() {
             translate([p[0], p[1], -1.2]) cylinder(d = 2.2, h = standoff_h + 2);
         }
     }
+    for (h = pcb_rests) { p = P(h[0], h[1]); translate([p[0], p[1], 0]) cylinder(d = 5.0, h = standoff_h); }
     // predni sloupky pro srouby vicka (M3 skrz zespodu do vicka)
     for (b = front_bosses)
         difference() {
@@ -260,7 +274,11 @@ module cleat(test = false) {
 module dummy_parts() {
     color("forestgreen") translate([side_gap, rear_gap, pcb_z0]) cube(pcb);
     color("dimgray") { p = P(32, 52.7); translate([p[0] - 9, p[1] - 11.75, pcb_top + (esp_on_pins ? 2.5 : 0)]) cube([18, 23.5, 1]); }
-    color("silver") { p = P(11.5, 61); translate([p[0] - 4.5, p[1] - 3.65, pcb_top]) cube([9, 7.3, 3.2]); }
+    if (hand) {
+        color("royalblue") { p = P(mod_xy[0], mod_xy[1]); translate([p[0] - mod_size[0] / 2, p[1] - mod_size[1] / 2, pcb_top + 1.0]) cube([mod_size[0], mod_size[1], 1.2]); }
+        color("silver") { p = P(usbc_x, 61); translate([p[0] - 4.5, p[1] - 3.65, pcb_top + mod_t]) cube([9, 7.3, 3.2]); }
+    } else
+        color("silver") { p = P(11.5, 61); translate([p[0] - 4.5, p[1] - 3.65, pcb_top]) cube([9, 7.3, 3.2]); }
     color("silver") translate([W_in / 2 - batt[0] / 2, 1.5, batt_z0]) cube(batt);
     color("black") translate([disp_c[0] - disp_pcb[0] / 2, disp_c[1] - disp_pcb[1] / 2, disp_z0]) cube(disp_pcb);
     color([0.1, 0.15, 0.25]) translate([disp_c[0] - disp_glass[0] / 2, disp_c[1] + disp_glass_off - disp_glass[1] / 2, disp_z0 + disp_pcb[2]]) cube(disp_glass);
