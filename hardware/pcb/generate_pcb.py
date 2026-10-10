@@ -138,7 +138,7 @@ PARTS = [
     ('H4', ('MountingHole', 'MountingHole_2.7mm_M2.5'), 'M2.5', 39.6, 37.6, 0, {}, False),
 ]
 
-POWER_NETS = ['GND', 'VBUS', 'BAT+', 'SYS', 'VSW', '3V3', 'GPS_VCC', 'TFT_BLK']
+POWER_NETS = ['GND', 'VBUS', 'BAT+', 'BNEG', 'SYS', 'VSW', '3V3', 'GPS_VCC', 'TFT_BLK']
 
 # popisky pinu ESP32-C3-Zero (pady 1-9 vlevo od USB dolu, 10-18 vpravo zdola nahoru, USB nahore)
 C3_LABELS = ['5V', 'GND', '3V3', 'GP0', 'GP1', 'GP2', 'GP3', 'GP4', 'GP5',
@@ -170,10 +170,16 @@ for i, t in enumerate(['M', 'S', 'P', 'G']):
 # ===========================================================================
 # VARIANTA "RUCNI" (--variant hand): objednas jen holy plosny spoj a vse
 # zapajis sam. Vetsi soucastky (1206, SOT-223, SMA, THT) a misto USB-C + TP4056
-# na desce se pouzije hotovy modul "TP4056 Type-C" (nalepi se oboustrannou
-# paskou na desku, USB-C k zadni hrane, 3-4 kratke dratky na plosky IN+/IN-/OUT+/OUT-).
-#   modul IN+  --VBUS--> D3 (load sharing) + Q1 gate + detekce USB
-#   modul OUT+ --BAT+--> Q1 ;  IN- / OUT- -> GND ; baterie na B+/B- modulu
+# na desce se pouzije hotovy modul "TP4056 Type-C" s ochranou (DW01 + 8205A).
+# Modul se nalepi oboustrannou penovou paskou (~1 mm) na desku, USB-C k zadni
+# hrane, a 4 dratky vedou z jeho plosek na radu plosek za jeho koncem:
+#   modul IN+  -> IN+  (VBUS: D3 load sharing, gate Q1, detekce USB)
+#   modul OUT+ -> OUT+ (BAT+; na modulu je OUT+ = B+)
+#   modul B-   -> B-   (BNEG: minus baterie z J4 - NIKDY ne primo na GND,
+#                       jinak se obejde ochrana modulu)
+#   modul OUT- -> OUT- (GND)        modul IN- se nezapojuje
+# Modul bez ochrany (jen IN+/IN-/B+/B-): IN+ -> IN+, B+ -> OUT+, B- -> OUT-
+# a propojit pajeci mustek JP1 (B- = GND).
 # Zbytek zapojeni (vypinac, LDO, mereni baterie, spinani GPS a podsviceni,
 # tlacitka, ESP) je stejny jako ve variante pro JLC -> stejny firmware (BOARD_PROFILE 1).
 # ===========================================================================
@@ -186,25 +192,31 @@ LDO_FP = ('Package_TO_SOT_SMD', 'SOT-223-3_TabPin2')
 LDO_PART = 'MCP1825S-3302E/DB'
 LDO_PINS = {'1': 'VSW', '2': 'GND', '3': '3V3'}          # SOT-223: 1 VIN, 2 GND (+ chladici plocha), 3 VOUT
 
-# modul TP4056 Type-C: obrys (sirka x delka) a plosky pro dratky, souradnice od stredu
-# modulu, USB-C konec je +y (dolni hrana desky)
-MOD_W, MOD_L = 17.6, 28.2
-MOD_PADS = [  # (cislo, x, y, popisek, sit)
-    ('1', MOD_W / 2 + 1.6, MOD_L / 2 - 2.6, 'IN+', 'VBUS'),
-    ('2', MOD_W / 2 + 1.6, MOD_L / 2 - 5.6, 'IN-', 'GND'),
-    ('3', -2.6, -MOD_L / 2 - 1.7, 'OUT+', 'BAT+'),
-    ('4', 2.6, -MOD_L / 2 - 1.7, 'OUT-', 'GND'),
+# misto pro modul TP4056 Type-C (sirka x delka od hrany desky): pokryje bezne moduly
+# 25-28.4 x 17.2-17.8 mm + presah USB-C 1-1.4 mm + vule na nalepeni
+# (strana "+" modulu = IN+/B+/OUT+ je pri pohledu shora s USB-C dole VLEVO)
+MOD_W, MOD_L = 19.0, 30.5
+MOD_PAD_D, MOD_PAD_DRILL = 2.2, 1.0
+MOD_PADS = [  # (cislo, x, y, popisek, sit) od stredu mista pro modul; rada plosek za jeho koncem
+    ('1', -4.3, -MOD_L / 2 - 1.65, 'IN+', 'VBUS'),
+    ('2', -1.0, -MOD_L / 2 - 1.65, 'OUT+', 'BAT+'),
+    ('3', 2.5, -MOD_L / 2 - 1.65, 'B-', 'BNEG'),
+    ('4', 6.0, -MOD_L / 2 - 1.65, 'OUT-', 'GND'),
 ]
 
 PARTS_HAND = [
     # --- nabijeci modul TP4056 Type-C (uz ho mas) ---
-    ('A1', 'TP4056MOD', 'TP4056 USB-C modul', 11.5, 49.4, 0, {m[0]: m[4] for m in MOD_PADS}, False),
+    ('A1', 'TP4056MOD', 'TP4056 USB-C modul', 11.5, H - MOD_L / 2, 0, {m[0]: m[4] for m in MOD_PADS}, False),
+    ('J4', ('Connector_JST', 'JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal'), 'LiPo 3.7V', 9.0, 22.6, 90,
+     {'1': 'BAT+', '2': 'BNEG'}, False),
+    ('JP1', ('Jumper', 'SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm'), 'B- = GND', 20.0, 29.0, 0,
+     {'1': 'BNEG', '2': 'GND'}, False),
     # --- load sharing + vypinac + LDO ---
     ('D3', SMAH, 'SS34', 11.0, 33.2, 0, {'1': 'SYS', '2': 'VBUS'}, False),
     ('Q1', SOT23H, 'AO3401A', 18.2, 33.4, 0, {'1': 'VBUS', '2': 'SYS', '3': 'BAT+'}, False),
     ('R6', R1206, '100k', 22.6, 33.4, 90, {'1': 'VBUS', '2': 'GND'}, False),
     ('C3', C1206, '10uF', 15.0, 29.4, 0, {'1': 'SYS', '2': 'GND'}, False),
-    ('SW1', ('Button_Switch_THT', 'SW_Slide_SPDT_Angled_CK_OS102011MA1Q'), 'ON/OFF', 2.7, 30.0, -90,
+    ('SW1', ('Button_Switch_THT', 'SW_Slide_SPDT_Angled_CK_OS102011MA1Q'), 'ON/OFF', 2.7, 25.75, -90,
      {'1': 'SYS', '2': 'VSW', '3': ''}, False),
     ('U2', LDO_FP, LDO_PART, 11.4, 23.6, 0, LDO_PINS, False),
     ('C4', C1206, '10uF', 6.6, 24.4, 90, {'1': 'VSW', '2': 'GND'}, False),
@@ -259,6 +271,8 @@ SILK_HAND = [
     ('START', 36.2, 12.0, 0.8, 0),
     ('PAUZA', 34.5, 23.4, 0.8, 0),
     ('ESP USB', 32.0, 39.6, 0.8, 0),
+    ('+', 7.3, 22.6, 0.9, 0),
+    ('B-', 7.0, 20.25, 0.8, 0),
 ]
 for i, t in enumerate(['G', 'V', 'CK', 'DA', 'RS', 'DC', 'CS', 'BL']):
     SILK_HAND.append((t, 7.8 + i * 2.54, 5.6, 0.8, 0))
@@ -272,8 +286,30 @@ REF_POS_HAND = {}
 REF_SIZE_HAND = 0.9
 REF_MISSING = []
 
-# kde koupit (CZ) - doplni se i do seznamu soucastek
-SHOP_HAND = {}
+# seznam soucastek k nakupu: sjednoceni nazvu + kde koupit (kody over pred objednavkou)
+BOM_VALUE_HAND = {
+    'MODE': 'Tlacitko 6x6 uhlove', 'START': 'Tlacitko 6x6 uhlove', 'PAUSE': 'Tlacitko 6x6 uhlove',
+    'TFT': 'Kolikova lista 1x8', 'GPS': 'Kolikova lista 1x4', 'BTN ext': 'Kolikova lista 1x4 (volitelne)',
+}
+SHOP_HAND = {
+    'TP4056 USB-C modul': 'uz mas; nejlepe verze s ochranou (6 plosek IN+ IN- B+ B- OUT+ OUT-), max. 19 x 30 mm vc. USB-C',
+    'LiPo 3.7V': 'JST PH 2.0 mm 2pin uhlovy (S2B-PH-K-S) + protikus PHR-2 nebo hotovy kabel PH2.0; lze i bez nej',
+    'B- = GND': 'nic nekupovat - pajeci mustek, spojit JEN pro modul bez ochrany',
+    'SS34': 'Schottky 40 V 3 A v pouzdru SMA, napr. SK34A (TME: SK34A-LTP); staci i SS24A/SS14 (SMA). SS34 v SMB/SMC je vetsi!',
+    'AO3401A': 'P-MOSFET SOT-23, TME: AO3401A; nahrada IRLML6401 (stejne vyvody G-S-D). Kup 2-3 navic',
+    'MCP1825S-3302E/DB': 'LDO 3.3 V 500 mA SOT-223 (TME, Mouser). NE AMS1117/LD1117 - maji jine poradi vyvodu!',
+    '100k': 'rezistor 1206 1 % (napr. Yageo RC1206FR-07100KL) nebo sada 1206',
+    '10k': 'rezistor 1206 1 % (napr. Yageo RC1206FR-0710KL)',
+    '1k': 'rezistor 1206 1 % (napr. Yageo RC1206FR-071KL)',
+    '10uF': 'keramicky kondenzator 1206 10 uF 25 V X5R/X7R (napr. Samsung CL31A106KAHNNNE)',
+    '100nF': 'keramicky kondenzator 1206 100 nF 50 V X7R (napr. Samsung CL31B104KBCNNNC)',
+    'ON/OFF': 'posuvny prepinac uhlovy C&K OS102011MA1QN1 (TME)',
+    'Tlacitko 6x6 uhlove': 'C&K PTS645VL31-2 LFS (TME: PTS645VL312LFS); levna z AliExpressu mivaji jinou roztec',
+    'ESP32-C3-Zero': 'uz mas (+ 2x lista 1x9, pokud nebyla pripajena)',
+    'Kolikova lista 1x8': 'lista 1x40 2,54 mm (GME, TME) - nalamat; nebo zdirkova, kdyz ma jit displej odpojit',
+    'Kolikova lista 1x4': 'ze stejne listy 1x40',
+    'Kolikova lista 1x4 (volitelne)': 'jen pro externi vodotesna tlacitka',
+}
 
 VARIANT = 'jlc'
 
@@ -341,8 +377,8 @@ def make_tp4056_module(board):
         p.SetNumber(num)
         p.SetAttribute(pcbnew.PAD_ATTRIB_PTH)
         p.SetShape(pcbnew.PAD_SHAPE_RECT if num == '1' else pcbnew.PAD_SHAPE_CIRCLE)
-        p.SetSize(pcbnew.VECTOR2I(mm(2.0), mm(2.0)))
-        p.SetDrillSize(pcbnew.VECTOR2I(mm(1.0), mm(1.0)))
+        p.SetSize(pcbnew.VECTOR2I(mm(MOD_PAD_D), mm(MOD_PAD_D)))
+        p.SetDrillSize(pcbnew.VECTOR2I(mm(MOD_PAD_DRILL), mm(MOD_PAD_DRILL)))
         p.SetLayerSet(p.PTHMask())
         fp.Add(p)
         p.SetPos0(pcbnew.VECTOR2I(mm(x), mm(y)))
@@ -358,7 +394,7 @@ def make_tp4056_module(board):
         s.SetDrawCoord()
         s.SetWidth(mm(w))
     hw, hl = MOD_W / 2, MOD_L / 2
-    for layer, d, w in ((pcbnew.F_Fab, 0, 0.1), (pcbnew.F_SilkS, 0.2, SILK_W), (pcbnew.F_CrtYd, 0.3, 0.05)):
+    for layer, d, w in ((pcbnew.F_Fab, 0, 0.1), (pcbnew.F_SilkS, -0.3, SILK_W), (pcbnew.F_CrtYd, 0, 0.05)):
         x0, y0, x1, y1 = -hw - d, -hl - d, hw + d, hl + d
         if layer == pcbnew.F_SilkS:      # carkovany obrys = sem prijde modul
             for (ax, ay, bx, by) in ((x0, y0, x1, y0), (x1, y0, x1, y1), (x0, y1, x0, y0)):
@@ -370,12 +406,13 @@ def make_tp4056_module(board):
         else:
             line(layer, x0, y0, x1, y0, w); line(layer, x1, y0, x1, y1, w)
             line(layer, x1, y1, x0, y1, w); line(layer, x0, y1, x0, y0, w)
-    # courtyard i kolem plosek pro dratky
-    for num, x, y, _lab, _net in MOD_PADS:
-        line(pcbnew.F_CrtYd, x - 1.3, y - 1.3, x + 1.3, y - 1.3, 0.05)
-        line(pcbnew.F_CrtYd, x + 1.3, y - 1.3, x + 1.3, y + 1.3, 0.05)
-        line(pcbnew.F_CrtYd, x + 1.3, y + 1.3, x - 1.3, y + 1.3, 0.05)
-        line(pcbnew.F_CrtYd, x - 1.3, y + 1.3, x - 1.3, y - 1.3, 0.05)
+    # courtyard i kolem plosek pro dratky (+ misto na popisky nad nimi)
+    r = MOD_PAD_D / 2 + 0.25
+    xs = [m[1] for m in MOD_PADS]
+    py = MOD_PADS[0][2]
+    line(pcbnew.F_CrtYd, min(xs) - r, py - r - 1.5, max(xs) + r, py - r - 1.5, 0.05)
+    line(pcbnew.F_CrtYd, min(xs) - r, py - r - 1.5, min(xs) - r, -hl, 0.05)
+    line(pcbnew.F_CrtYd, max(xs) + r, py - r - 1.5, max(xs) + r, -hl, 0.05)
     return fp
 
 
@@ -634,16 +671,15 @@ def build_board():
         c = a1.GetPosition()
         for num, x, y, lab, _net in MOD_PADS:
             px, py = pcbnew.ToMM(c.x) + x, pcbnew.ToMM(c.y) + y
-            if abs(x) > MOD_W / 2:                        # plosky vedle modulu -> popisek vedle plosky
-                add_text(board, lab, px + (2.0 + len(lab) * 0.36) * (1 if x > 0 else -1), py, 0.8)
-            else:                                         # plosky za koncem modulu -> popisek nad
-                add_text(board, lab, px, py - 1.9 if y < 0 else py + 1.9, 0.8)
+            add_text(board, lab, px, py - MOD_PAD_D / 2 - 0.85, 0.8)
         cx, cy = pcbnew.ToMM(c.x), pcbnew.ToMM(c.y)
-        add_text(board, 'NABIJECI MODUL', cx, cy - 2.0, 1.0)
-        add_text(board, 'TP4056 USB-C', cx, cy, 1.0)
-        add_text(board, 'USB-C k hrane', cx, cy + 2.0, 0.8)
+        add_text(board, 'NABIJECI MODUL', cx, cy - 4.0, 1.0)
+        add_text(board, 'TP4056 USB-C', cx, cy - 2.2, 1.0)
+        add_text(board, 'na pasku, USB-C k hrane', cx, cy + 0.2, 0.8)
+        add_text(board, '+ strana', cx - MOD_W / 2 + 2.2, cy + 4.0, 0.8, 90)
+        add_text(board, 'IN+ dratek podel + strany', cx, cy + 2.0, 0.7)
     if VARIANT == 'hand':
-        auto_ref_labels(board, skip={'U3', 'J2', 'J3', 'J5', 'A1', 'H1', 'H2', 'H3', 'H4'})
+        auto_ref_labels(board, skip={'U3', 'J2', 'J3', 'J5', 'A1', 'J4', 'H1', 'H2', 'H3', 'H4'})
     return board, nets
 
 
@@ -1064,7 +1100,7 @@ def hand_outputs(pcb_path, outdir, board):
             continue
         pkg = {'C3ZERO': 'modul na listach', 'TP4056MOD': 'hotovy modul'}.get(fpdef) if isinstance(fpdef, str) else fpdef[1]
         pkg = re.sub(r'_\d+Metric.*|_HandSolder.*|_Handsoldering', '', pkg)
-        groups.setdefault((value, pkg), []).append(ref)
+        groups.setdefault((BOM_VALUE_HAND.get(value, value), pkg), []).append(ref)
     with open(os.path.join(outdir, f'{NAME}_soucastky.csv'), 'w', newline='') as f:
         w = csv.writer(f)
         w.writerow(['Hodnota', 'Pouzdro', 'Kusu', 'Oznaceni na desce', 'Kde koupit / poznamka'])

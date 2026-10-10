@@ -35,11 +35,13 @@ pcb_holes = hand ? [[3.4, 9.0], [39.6, 9.0], [39.6, 37.6]]
 pcb_rests = hand ? [[3.0, 60.6]] : [];      // podpery pod PCB bez sroubu (rucni: roh pod modulem)
 sw1_y     = hand ? 30.0 : 45.0;            // vypinac SW1 na PCB (KiCad y)
 // rucni varianta: nabijeci modul lezi na PCB (paska + deska modulu), USB-C je proto vys
-mod_xy    = [11.5, 49.4];                  // stred modulu na PCB (KiCad)
-mod_size  = [17.6, 28.2];
+mod_xy    = [11.5, 49.1];                  // stred modulu na PCB (KiCad)
+mod_size  = [17.5, 28.0];                  // ZMER SVUJ MODUL (bez presahu USB-C)
 mod_t     = 1.0 + 1.2;                     // oboustranna paska + tloustka desky modulu
+mod_led_y = 53;                            // LED modulu (KiCad y) -> okenko v leve stene
 usbc_x    = hand ? mod_xy[0] : 11.5;
 usbc_z    = hand ? 1.6 + mod_t : 1.6;      // stred nabijeciho USB-C nad PCB
+usbc_h    = hand ? 8.0 : 7.0;              // vyska otvoru (u modulu vetsi tolerance)
 esp_on_pins = true; // ESP32-C3-Zero na kolickove liste (true) / naplocho (false)
 standoff_h = 2.5;   // mezera pod PCB (zkrat vyvody THT na 1.5 mm)
 comp_h    = esp_on_pins ? 7.4 : 6.8;  // nejvyssi soucastka nad PCB (ESP+USB-C, uhlova tlacitka)
@@ -121,15 +123,20 @@ module base() {
 
         // --- zadni stena: USB-C nabijeni (J1) a USB-C ESP (programovani)
         j1 = P(usbc_x, 64);
-        translate([j1[0], -wall / 2, pcb_top + usbc_z]) rounded_slot(12.5, 7.0, wall + 2);
+        translate([j1[0], -wall / 2, pcb_top + usbc_z]) rounded_slot(12.5, usbc_h, wall + 2);
         esp = P(32.0, 64);
         esp_z = pcb_top + (esp_on_pins ? 2.5 : 0) + 1.0 + 1.6;
         translate([esp[0], -wall / 2, esp_z]) rounded_slot(12.5, 7.5, wall + 2);
         // svetlovod nabijeci LED (zalij kapkou cireho lepidla)
         // LED D1/D2 jsou na PCB na x = 18.5; otvor je o 1.1 mm vedle, aby mezi nim
         // a otvorem USB-C zustala stena (svetlo LED se v krabicce rozptyli)
-        led = P(19.6, 59);
-        translate([led[0], -wall / 2, pcb_top + 0.8]) rotate([90, 0, 0]) cylinder(d = 2.2, h = wall + 2, center = true);
+        if (!hand) {
+            led = P(19.6, 59);
+            translate([led[0], -wall / 2, pcb_top + 0.8]) rotate([90, 0, 0]) cylinder(d = 2.2, h = wall + 2, center = true);
+        } else {    // LED nabijeciho modulu sviti nahoru u jeho "+" strany -> okenko v leve stene
+            led = P(0, mod_led_y);
+            translate([-wall / 2, led[1], pcb_top + mod_t + 1.2]) rotate([0, 90, 0]) cylinder(d = 2.5, h = wall + 2, center = true);
+        }
 
         // --- leva stena: vypinac + tlacitko MODE
         sw1 = P(2.7, sw1_y + 2.0);
@@ -275,7 +282,7 @@ module dummy_parts() {
     color("forestgreen") translate([side_gap, rear_gap, pcb_z0]) cube(pcb);
     color("dimgray") { p = P(32, 52.7); translate([p[0] - 9, p[1] - 11.75, pcb_top + (esp_on_pins ? 2.5 : 0)]) cube([18, 23.5, 1]); }
     if (hand) {
-        color("royalblue") { p = P(mod_xy[0], mod_xy[1]); translate([p[0] - mod_size[0] / 2, p[1] - mod_size[1] / 2, pcb_top + 1.0]) cube([mod_size[0], mod_size[1], 1.2]); }
+        color("royalblue") { p = P(mod_xy[0], mod_xy[1]); translate([p[0] - mod_size[0] / 2, p[1] - mod_size[1] / 2, pcb_top + mod_t - 1.2]) cube([mod_size[0], mod_size[1], 1.2]); }
         color("silver") { p = P(usbc_x, 61); translate([p[0] - 4.5, p[1] - 3.65, pcb_top + mod_t]) cube([9, 7.3, 3.2]); }
     } else
         color("silver") { p = P(11.5, 61); translate([p[0] - 4.5, p[1] - 3.65, pcb_top]) cube([9, 7.3, 3.2]); }
