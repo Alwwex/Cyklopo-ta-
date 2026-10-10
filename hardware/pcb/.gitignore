@@ -6,3 +6,4 @@ fp-info-cache
 logs/
 build_rucni/gerber/
 build_rucni/*.dsn
+__pycache__/
