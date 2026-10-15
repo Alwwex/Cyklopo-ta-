@@ -1,0 +1,10 @@
+Oznaceni,Dil,Pouzdro
+SW1,ON/OFF,SW_Slide_SPDT_Angled_CK_OS102011MA1Q
+J4,LiPo 3.7V,JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal
+U3,ESP32-C3-Zero,C3ZERO
+J2,TFT,PinHeader_1x08_P2.54mm_Vertical
+J3,GPS,PinHeader_1x04_P2.54mm_Vertical
+SW2,MODE,SW_Tactile_SPST_Angled_PTS645Vx31-2LFS
+SW3,START,SW_Tactile_SPST_Angled_PTS645Vx31-2LFS
+SW4,PAUSE,SW_Tactile_SPST_Angled_PTS645Vx31-2LFS
+J5,BTN ext,PinHeader_1x04_P2.54mm_Vertical

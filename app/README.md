@@ -1,5 +1,10 @@
 # CykloComp – mobilní aplikace (React Native, Android)
 
+> **Doporučená je nová webová aplikace [`webapp/`](../webapp/README.md)** – nepotřebuje
+> Android Studio ani Google Maps klíč a umí stahovat jízdy uložené v CykloCompu.
+> Tahle nativní appka zůstává kompatibilní s firmwarem v2 (proč a kdy se hodí:
+> [docs/DOPORUCENI.md](../docs/DOPORUCENI.md)).
+
 Tento adresář obsahuje **JS zdrojový kód aplikace** (obrazovky, BLE vrstva,
 gamifikace, služby pro routing/OSM). RN CLI generuje nativní `android/`
 a `ios/` složky samo – ty se do gitu obvykle needitují ručně, proto tu
