@@ -12,6 +12,18 @@ a tři boční tlačítka.
 
 Schéma: [`schema_zapojeni.svg`](schema_zapojeni.svg) ([PNG](schema_zapojeni.png))
 
+**Dvě varianty – vyber si:**
+
+| | **CykloPCB v1** (JLC osadí) | **CykloPCB v1 R** (všechno pájíš sám) |
+|---|---|---|
+| Objednáš | desku + osazení SMD u JLCPCB | jen holou desku (~100–250 Kč za 5 ks vč. dopravy) |
+| Součástky | 0603, USB-C a TP4056 přímo na desce | velké **1206**, SOT-223, SMA + **tvůj modul TP4056 USB-C** |
+| Pájení | jen THT (tlačítka, konektory, ESP) | všechno, ale nic malinkého – zvládne začátečník |
+| Soubory | `build/` | `build_rucni/` → [návod níž](#varianta-pro-ruční-pájení--cyklopcb-v1-r) |
+
+Firmware je pro obě stejný (`BOARD_PROFILE BOARD_CYKLOPCB_V1`), krabička má
+přepínač `pcb_variant`.
+
 ## Co je na desce
 
 | Blok | Součástky | Proč |
@@ -83,6 +95,74 @@ JLC osadí jen SMD součástky nahoře. **Ručně připájíš** (seznam
 4. Připájej ESP32-C3-Zero, tlačítka, vypínač, konektory.
 5. Ve firmwaru nastav `#define BOARD_PROFILE BOARD_CYKLOPCB_V1`
    (v `firmware/CykloComp/CykloComp.ino`) a nahraj přes USB-C **na modulu ESP**.
+
+## Varianta pro ruční pájení – CykloPCB v1 R
+
+| Deska | Osazovací výkres (hodnoty součástek) |
+|---|---|
+| ![rucni](build_rucni/CykloPCB_v1_rucni_preview_top.png) | ![vykres](build_rucni/CykloPCB_v1_rucni_osazovaci_vykres.png) |
+
+Stejná velikost, díry, tlačítka, konektory i piny ESP jako v1 – jen místo USB-C
+a nabíječky na desce se **nalepí tvůj modul TP4056 USB-C** a ostatní součástky
+jsou velké (1206 = 3,2 × 1,6 mm, rozšířené plošky „HandSolder“).
+
+**Objednání:** na JLCPCB nahraj jen `build_rucni/CykloPCB_v1_rucni_gerber_JLCPCB.zip`,
+5 ks, 2 vrstvy, 1,6 mm, HASL lead free, **PCB Assembly vypnuté**.
+Součástky: [`build_rucni/CykloPCB_v1_rucni_soucastky.csv`](build_rucni/CykloPCB_v1_rucni_soucastky.csv)
+(hodnota, kusy, označení na desce, kde koupit) a [nákupní seznam](../../docs/NAKUP.md).
+
+### Nabíjecí modul TP4056 USB-C (ten, co už máš)
+
+- Max. **19 × 30 mm** včetně přesahu USB-C (běžné moduly mají 25–28,4 × 17–17,8 mm).
+  Před objednáním desky ho změř.
+- Nalep ho **oboustrannou pěnovou páskou ~1 mm** do čárkovaného obdélníku,
+  USB-C k dolní hraně desky. Strana „+“ modulu (IN+, B+, OUT+) je při pohledu
+  shora s USB-C dole **vlevo** (je to i na potisku).
+- 4 drátky (silikonový 26 AWG, cca 5–30 mm) z plošek modulu na řadu plošek nad ním:
+
+| Plošky na modulu | → plošky na desce | Síť |
+|---|---|---|
+| IN+ (u USB-C, vlevo) | **IN+** (drátek podél levé strany modulu) | VBUS – detekce USB + load sharing |
+| OUT+ (nebo B+, je to totéž) | **OUT+** | BAT+ |
+| B- | **B-** | minus baterie (z J4) |
+| OUT- | **OUT-** | GND |
+| IN- | nic | – |
+
+> ⚠️ **B- nikdy nespojuj s GND** – obešla by se ochrana modulu (DW01 + 8205).
+> Baterie se zapojí do **J4** (potisk **+** a **B-**), deska ji pošle do modulu.
+>
+> Máš modul **bez ochrany** (jen 4 plošky IN+ IN- B+ B-)? IN+ → IN+, B+ → OUT+,
+> B- → OUT- a **zakápni cínem pájecí můstek JP1** (B- = GND). Ochranu pak dělá
+> jen PCM v baterii.
+
+- Nabíjí ~1 A (Rprog 1,2 kΩ) → použij nabíječku aspoň **1,5–2 A**, ne USB v PC.
+  Modul hřeje (až ~1,3 W), proto neleží pod baterií.
+- Hodně levných modulů **nemá na USB-C odpory 5,1 kΩ (CC)** – pak nenabíjí
+  z nabíječky USB-C → USB-C, jen kabelem **USB-A → USB-C**. Vyzkoušej předem.
+- LED modulu prosvítí okénkem v levé stěně krabičky (`pcb_variant = "rucni"`).
+
+### Pořadí pájení
+
+Nástroje: mikropájka s teplotou (Pinecil / TS101 / stanice), hrot sekáček
+1,6–2,4 mm, cín 0,5–0,7 mm, **tavidlo**, knot, pinzeta, multimetr, lupa nebo foťák telefonu.
+
+1. **Rezistory a kondenzátory 1206** (podle osazovacího výkresu): pocínuj jednu
+   plošku, pinzetou přilož součástku, prohřej, pak druhou stranu.
+2. **MOSFETy Q1–Q3 (SOT-23)** – stejný postup, jeden vývod je sám na jedné straně.
+3. **LDO U2 (SOT-223)** – nejdřív vývod 1, pak 2 a 3, nakonec velkou chladicí
+   plošku (GND, potřebuje víc tepla ~350–380 °C a tavidlo).
+4. **Dioda D3 (SMA)** – proužek (katoda) k plošce **1** = strana s potiskem katody.
+5. THT: vypínač SW1, tlačítka SW2–4 (zatlač až k desce, ať sedí s krabičkou),
+   J4, lišty J2, J3 (J5 jen pro externí tlačítka).
+6. Modul TP4056: drátky nejdřív na modul, pak přilepit, pak na desku.
+7. ESP32-C3-Zero úplně nakonec (**USB-C ESP dolů** k hraně, je to na potisku).
+
+**Kontrola před zapnutím:** multimetrem 3V3–GND a VSW–GND nesmí pípat (zkrat).
+Pak USB do modulu, vypínač ON: VSW ≈ 4,6 V, 3V3 = 3,3 V. Potom baterie (**polarita!**)
+a znovu 3V3 bez USB. Teprve pak ESP.
+
+Generování: `python3 generate_pcb.py --variant hand --freerouting /cesta/k/freerouting-1.9.0.jar`
+a `python3 render_preview.py hand`.
 
 ## Jak deska vznikla / úpravy
 

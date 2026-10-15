@@ -22,7 +22,7 @@ budík rychlosti a retro zelené LCD téma.
 | [`firmware/host_preview/`](firmware/host_preview/) | náhled displeje na PC – stejný kód vykreslí obrazovky do PNG (bez hardwaru) |
 | [`webapp/`](webapp/README.md) | **mobilní aplikace** (PWA, Web Bluetooth) – doporučená |
 | [`app/`](app/README.md) | původní React Native aplikace (kompatibilní, dál se nevyvíjí) |
-| [`hardware/pcb/`](hardware/pcb/README.md) | plošný spoj: KiCad, Gerber + BOM + CPL pro JLCPCB, schéma |
+| [`hardware/pcb/`](hardware/pcb/README.md) | plošný spoj ve 2 variantách: osazení u JLCPCB, nebo holá deska na ruční pájení |
 | [`hardware/enclosure/`](hardware/enclosure/README.md) | 3D tištěná krabička (OpenSCAD + STL), Garmin quarter-turn |
 | [`tools/usb_console.py`](tools/usb_console.py) | ladění přes USB bez telefonu |
 | [`docs/NAKUP.md`](docs/NAKUP.md) | **co doobjednat** |
@@ -39,8 +39,10 @@ budík rychlosti a retro zelené LCD téma.
 2. **Aplikace** – otevři `webapp/` v Chrome na Androidu (návod na nasazení v
    [webapp/README.md](webapp/README.md)) → *Připojit CykloComp*. Bez hardwaru:
    *Vyzkoušet demo*.
-3. **PCB** – nahraj `hardware/pcb/build/CykloPCB_v1_gerber_JLCPCB.zip` + BOM + CPL
-   na JLCPCB ([postup](hardware/pcb/README.md)).
+3. **PCB** – buď JLC osadí malé součástky (`hardware/pcb/build/` – gerber zip
+   + BOM + CPL), nebo objednáš **jen holou desku a všechno připájíš sám**
+   (`hardware/pcb/build_rucni/`, velké součástky + tvůj modul TP4056)
+   ([postup pro obě varianty](hardware/pcb/README.md)).
 4. **Krabička** – změř displej a baterii, uprav parametry a vytiskni
    ([postup](hardware/enclosure/README.md)). Nejdřív `garmin_test.stl`!
 

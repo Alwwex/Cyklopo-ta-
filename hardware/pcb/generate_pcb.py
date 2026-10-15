@@ -195,7 +195,7 @@ LDO_PINS = {'1': 'VSW', '2': 'GND', '3': '3V3'}          # SOT-223: 1 VIN, 2 GND
 # misto pro modul TP4056 Type-C (sirka x delka od hrany desky): pokryje bezne moduly
 # 25-28.4 x 17.2-17.8 mm + presah USB-C 1-1.4 mm + vule na nalepeni
 # (strana "+" modulu = IN+/B+/OUT+ je pri pohledu shora s USB-C dole VLEVO)
-MOD_W, MOD_L = 19.0, 30.5
+MOD_W, MOD_L = 19.0, 30.3
 MOD_PAD_D, MOD_PAD_DRILL = 2.2, 1.0
 MOD_PADS = [  # (cislo, x, y, popisek, sit) od stredu mista pro modul; rada plosek za jeho koncem
     ('1', -4.3, -MOD_L / 2 - 1.65, 'IN+', 'VBUS'),
@@ -207,25 +207,25 @@ MOD_PADS = [  # (cislo, x, y, popisek, sit) od stredu mista pro modul; rada plos
 PARTS_HAND = [
     # --- nabijeci modul TP4056 Type-C (uz ho mas) ---
     ('A1', 'TP4056MOD', 'TP4056 USB-C modul', 11.5, H - MOD_L / 2, 0, {m[0]: m[4] for m in MOD_PADS}, False),
-    ('J4', ('Connector_JST', 'JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal'), 'LiPo 3.7V', 9.0, 22.6, 90,
+    ('J4', ('Connector_JST', 'JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal'), 'LiPo 3.7V', 9.4, 17.5, 90,
      {'1': 'BAT+', '2': 'BNEG'}, False),
-    ('JP1', ('Jumper', 'SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm'), 'B- = GND', 20.0, 29.0, 0,
+    ('JP1', ('Jumper', 'SolderJumper-2_P1.3mm_Open_Pad1.0x1.5mm'), 'B- = GND', 20.7, 32.0, 90,
      {'1': 'BNEG', '2': 'GND'}, False),
     # --- load sharing + vypinac + LDO ---
-    ('D3', SMAH, 'SS34', 11.0, 33.2, 0, {'1': 'SYS', '2': 'VBUS'}, False),
-    ('Q1', SOT23H, 'AO3401A', 18.2, 33.4, 0, {'1': 'VBUS', '2': 'SYS', '3': 'BAT+'}, False),
-    ('R6', R1206, '100k', 22.6, 33.4, 90, {'1': 'VBUS', '2': 'GND'}, False),
-    ('C3', C1206, '10uF', 15.0, 29.4, 0, {'1': 'SYS', '2': 'GND'}, False),
-    ('SW1', ('Button_Switch_THT', 'SW_Slide_SPDT_Angled_CK_OS102011MA1Q'), 'ON/OFF', 2.7, 25.75, -90,
+    ('D3', SMAH, 'SS34', 11.9, 22.2, 0, {'1': 'SYS', '2': 'VBUS'}, False),
+    ('Q1', SOT23H, 'AO3401A', 19.6, 22.2, 0, {'1': 'VBUS', '2': 'SYS', '3': 'BAT+'}, False),
+    ('R6', R1206, '100k', 10.5, 26.65, 0, {'1': 'VBUS', '2': 'GND'}, False),
+    ('C3', C1206, '10uF', 16.0, 26.65, 0, {'1': 'SYS', '2': 'GND'}, False),
+    ('SW1', ('Button_Switch_THT', 'SW_Slide_SPDT_Angled_CK_OS102011MA1Q'), 'ON/OFF', 2.7, 25.9, -90,
      {'1': 'SYS', '2': 'VSW', '3': ''}, False),
-    ('U2', LDO_FP, LDO_PART, 11.4, 23.6, 0, LDO_PINS, False),
-    ('C4', C1206, '10uF', 6.6, 24.4, 90, {'1': 'VSW', '2': 'GND'}, False),
-    ('C6', C1206, '10uF', 17.0, 22.2, 90, {'1': '3V3', '2': 'GND'}, False),
-    ('C7', C1206, '100nF', 17.0, 26.2, 90, {'1': '3V3', '2': 'GND'}, False),
+    ('U2', LDO_FP, LDO_PART, 27.5, 23.9, 0, LDO_PINS, False),
+    ('C4', C1206, '10uF', 25.0, 18.3, 0, {'1': 'VSW', '2': 'GND'}, False),
+    ('C6', C1206, '10uF', 25.0, 29.4, 0, {'1': '3V3', '2': 'GND'}, False),
+    ('C7', C1206, '100nF', 30.6, 29.4, 0, {'1': '3V3', '2': 'GND'}, False),
     # --- mereni baterie (delic 1:2 -> GPIO0) ---
-    ('R7', R1206, '100k', 27.0, 39.2, 0, {'1': 'VSW', '2': 'BAT_SENSE'}, False),
-    ('R8', R1206, '100k', 27.0, 36.4, 0, {'1': 'BAT_SENSE', '2': 'GND'}, False),
-    ('C5', C1206, '100nF', 31.6, 37.8, 90, {'1': 'BAT_SENSE', '2': 'GND'}, False),
+    ('R7', R1206, '100k', 25.0, 32.9, 0, {'1': 'VSW', '2': 'BAT_SENSE'}, False),
+    ('R8', R1206, '100k', 25.0, 35.9, 0, {'1': 'BAT_SENSE', '2': 'GND'}, False),
+    ('C5', C1206, '100nF', 30.0, 34.4, 90, {'1': 'BAT_SENSE', '2': 'GND'}, False),
     # --- ESP32-C3-Zero ---
     ('U3', 'C3ZERO', 'ESP32-C3-Zero', 32.0, 52.7, 180,
      {'1': '', '2': 'GND', '3': '3V3', '4': 'BAT_SENSE', '5': 'TFT_RST', '6': 'TFT_DC', '7': 'TFT_CS',
@@ -234,16 +234,16 @@ PARTS_HAND = [
     # --- displej ---
     ('J2', ('Connector_PinHeader_2.54mm', 'PinHeader_1x08_P2.54mm_Vertical'), 'TFT', 7.8, 3.2, 90,
      {'1': 'GND', '2': '3V3', '3': 'TFT_SCLK', '4': 'TFT_MOSI', '5': 'TFT_RST', '6': 'TFT_DC', '7': 'TFT_CS', '8': 'TFT_BLK'}, False),
-    ('Q3', SOT23H, 'AO3401A', 21.6, 10.4, 90, {'1': 'BL_G', '2': '3V3', '3': 'TFT_BLK'}, False),
-    ('R11', R1206, '100k', 25.6, 9.6, 90, {'1': '3V3', '2': 'BL_G'}, False),
-    ('R12', R1206, '1k', 25.6, 14.4, 90, {'1': 'BL_G', '2': 'BL_PWM'}, False),
+    ('Q3', SOT23H, 'AO3401A', 21.4, 9.2, 90, {'1': 'BL_G', '2': '3V3', '3': 'TFT_BLK'}, False),
+    ('R11', R1206, '100k', 25.0, 9.2, 90, {'1': '3V3', '2': 'BL_G'}, False),
+    ('R12', R1206, '1k', 28.0, 9.2, 90, {'1': 'BL_G', '2': 'BL_PWM'}, False),
     # --- GPS ---
     ('J3', ('Connector_PinHeader_2.54mm', 'PinHeader_1x04_P2.54mm_Vertical'), 'GPS', 29.9, 3.2, 90,
      {'1': 'GPS_VCC', '2': 'GND', '3': 'GPS_TXD', '4': 'GPS_RXD'}, False),
-    ('Q2', SOT23H, 'AO3401A', 31.0, 10.4, 90, {'1': 'GPS_G', '2': '3V3', '3': 'GPS_VCC'}, False),
-    ('R9', R1206, '100k', 34.8, 9.6, 90, {'1': '3V3', '2': 'GPS_G'}, False),
-    ('R10', R1206, '1k', 34.8, 14.4, 90, {'1': 'GPS_G', '2': 'GPS_EN'}, False),
-    ('C8', C1206, '100nF', 28.4, 10.0, 90, {'1': 'GPS_VCC', '2': 'GND'}, False),
+    ('Q2', SOT23H, 'AO3401A', 31.6, 9.2, 90, {'1': 'GPS_G', '2': '3V3', '3': 'GPS_VCC'}, False),
+    ('R9', R1206, '100k', 25.0, 15.1, 0, {'1': '3V3', '2': 'GPS_G'}, False),
+    ('R10', R1206, '1k', 30.5, 15.1, 0, {'1': 'GPS_G', '2': 'GPS_EN'}, False),
+    ('C8', C1206, '100nF', 35.0, 9.2, 90, {'1': 'GPS_VCC', '2': 'GND'}, False),
     # --- tlacitka ---
     ('SW2', ('Button_Switch_THT', 'SW_Tactile_SPST_Angled_PTS645Vx31-2LFS'), 'MODE', 2.5, 19.6, 90,
      {'1': 'BTN1', '2': 'GND'}, False),
@@ -251,9 +251,9 @@ PARTS_HAND = [
      {'1': 'BTN2', '2': 'GND'}, False),
     ('SW4', ('Button_Switch_THT', 'SW_Tactile_SPST_Angled_PTS645Vx31-2LFS'), 'PAUSE', 40.5, 26.4, -90,
      {'1': 'BTN3', '2': 'GND'}, False),
-    ('R13', R1206, '100k', 21.0, 20.4, 0, {'1': '3V3', '2': 'BTN1'}, False),
-    ('R14', R1206, '10k', 30.0, 21.0, 0, {'1': '3V3', '2': 'BTN2'}, False),
-    ('J5', ('Connector_PinHeader_2.54mm', 'PinHeader_1x04_P2.54mm_Vertical'), 'BTN ext', 13.0, 14.0, 90,
+    ('R13', R1206, '100k', 18.0, 16.0, 90, {'1': '3V3', '2': 'BTN1'}, False),
+    ('R14', R1206, '10k', 30.5, 18.3, 0, {'1': '3V3', '2': 'BTN2'}, False),
+    ('J5', ('Connector_PinHeader_2.54mm', 'PinHeader_1x04_P2.54mm_Vertical'), 'BTN ext', 9.2, 8.6, 90,
      {'1': 'BTN1', '2': 'BTN2', '3': 'BTN3', '4': 'GND'}, False),
     # --- montazni otvory M2.5 (H3 vlevo dole odpada - je tam modul) ---
     ('H1', ('MountingHole', 'MountingHole_2.7mm_M2.5'), 'M2.5', 3.4, 9.0, 0, {}, False),
@@ -262,28 +262,29 @@ PARTS_HAND = [
 ]
 
 SILK_HAND = [
-    ('CykloPCB v1 R', 30.0, 30.4, 1.1, 0),
-    ('rucni osazeni', 30.0, 32.2, 0.8, 0),
+    ('CykloPCB v1 R', 11.5, 61.6, 1.0, 0),
     ('TFT', 3.6, 3.2, 1.0, 0),
-    ('GPS', 27.75, 3.2, 0.8, 90),
-    ('ON', 5.6, 35.2, 1.0, 0),
-    ('MODE', 3.4, 25.0, 0.8, 0),
+    ('GPS', 27.6, 2.8, 0.8, 90),
+    ('ON', 6.7, 27.6, 0.8, 90),
+    ('MODE', 6.6, 12.4, 0.8, 0),
     ('START', 36.2, 12.0, 0.8, 0),
-    ('PAUZA', 34.5, 23.4, 0.8, 0),
-    ('ESP USB', 32.0, 39.6, 0.8, 0),
-    ('+', 7.3, 22.6, 0.9, 0),
-    ('B-', 7.0, 20.25, 0.8, 0),
+    ('PAUZA', 33.8, 32.4, 0.8, 0),
+    ('USB-C ESP', 32.0, 62.4, 0.8, 0),
+    ('+', 7.9, 17.5, 0.9, 0),
+    ('B-', 7.5, 15.5, 0.8, 0),
 ]
 for i, t in enumerate(['G', 'V', 'CK', 'DA', 'RS', 'DC', 'CS', 'BL']):
     SILK_HAND.append((t, 7.8 + i * 2.54, 5.6, 0.8, 0))
 for i, t in enumerate(['V', 'G', 'TX', 'RX']):
     SILK_HAND.append((t, 29.9 + i * 2.54, 5.6, 0.8, 0))
 for i, t in enumerate(['M', 'S', 'P', 'G']):
-    SILK_HAND.append((t, 13.0 + i * 2.54, 16.7, 0.8, 0))
+    SILK_HAND.append((t, 9.2 + i * 2.54, 11.3, 0.8, 0))
 
 # popisky soucastek (R7, C3...) na potisku: {ref: (x, y, rot)}; ktere tu nejsou, umisti se samy
-REF_POS_HAND = {}
-REF_SIZE_HAND = 0.9
+REF_POS_HAND = {'C8': (36.7, 9.2, 90), 'C7': (34.6, 29.4, 0), 'D3': (11.9, 24.6, 0),
+                'R6': (10.5, 28.45, 0), 'C3': (16.0, 28.45, 0), 'Q1': (19.6, 19.7, 0), 'JP1': (21.0, 29.6, 0),
+                'C6': (25.0, 31.15, 0)}
+REF_SIZE_HAND = 0.8
 REF_MISSING = []
 
 # seznam soucastek k nakupu: sjednoceni nazvu + kde koupit (kody over pred objednavkou)
@@ -394,7 +395,7 @@ def make_tp4056_module(board):
         s.SetDrawCoord()
         s.SetWidth(mm(w))
     hw, hl = MOD_W / 2, MOD_L / 2
-    for layer, d, w in ((pcbnew.F_Fab, 0, 0.1), (pcbnew.F_SilkS, -0.3, SILK_W), (pcbnew.F_CrtYd, 0, 0.05)):
+    for layer, d, w in ((pcbnew.F_Fab, 0, 0.1), (pcbnew.F_SilkS, -0.3, SILK_W)):
         x0, y0, x1, y1 = -hw - d, -hl - d, hw + d, hl + d
         if layer == pcbnew.F_SilkS:      # carkovany obrys = sem prijde modul
             for (ax, ay, bx, by) in ((x0, y0, x1, y0), (x1, y0, x1, y1), (x0, y1, x0, y0)):
@@ -406,13 +407,14 @@ def make_tp4056_module(board):
         else:
             line(layer, x0, y0, x1, y0, w); line(layer, x1, y0, x1, y1, w)
             line(layer, x1, y1, x0, y1, w); line(layer, x0, y1, x0, y0, w)
-    # courtyard i kolem plosek pro dratky (+ misto na popisky nad nimi)
+    # courtyard: uzavreny tvar L = misto modulu + rada plosek pro dratky (s popisky nad nimi)
     r = MOD_PAD_D / 2 + 0.25
     xs = [m[1] for m in MOD_PADS]
-    py = MOD_PADS[0][2]
-    line(pcbnew.F_CrtYd, min(xs) - r, py - r - 1.5, max(xs) + r, py - r - 1.5, 0.05)
-    line(pcbnew.F_CrtYd, min(xs) - r, py - r - 1.5, min(xs) - r, -hl, 0.05)
-    line(pcbnew.F_CrtYd, max(xs) + r, py - r - 1.5, max(xs) + r, -hl, 0.05)
+    py = MOD_PADS[0][2] - r - 1.5
+    pts = [(-hw, hl), (-hw, -hl), (min(xs) - r, -hl), (min(xs) - r, py), (max(xs) + r, py),
+           (max(xs) + r, -hl), (hw, -hl), (hw, hl)]
+    for (ax, ay), (bx, by) in zip(pts, pts[1:] + pts[:1]):
+        line(pcbnew.F_CrtYd, ax, ay, bx, by, 0.05)
     return fp
 
 
@@ -431,8 +433,8 @@ def auto_ref_labels(board, skip):
     S = REF_SIZE_HAND
     boxes = []
     for f in board.GetFootprints():
-        x0, y0, x1, y1 = courtyard_bbox(f)
-        boxes.append((f.GetReference(), (TM(x0), TM(y0), TM(x1), TM(y1))))
+        for x0, y0, x1, y1 in courtyard_boxes(f):
+            boxes.append((f.GetReference(), (TM(x0), TM(y0), TM(x1), TM(y1))))
     taken = [text_bbox(*t[:3], t[3], t[4]) for t in SILK]
     for d in board.GetDrawings():
         if isinstance(d, pcbnew.PCB_TEXT):
@@ -551,18 +553,30 @@ def courtyard_bbox(fp):
     return min(xs), min(ys), max(xs), max(ys)
 
 
+def courtyard_boxes(fp):
+    """courtyard jako seznam obdelniku (modul TP4056 ma tvar L: misto modulu + rada plosek)"""
+    if fp.GetFPID().GetLibItemName().wx_str() != 'TP4056_TypeC_module_wired':
+        return [courtyard_bbox(fp)]
+    c = fp.GetPosition()
+    xs = [m[1] for m in MOD_PADS]
+    r, py = MOD_PAD_D / 2 + 0.25, MOD_PADS[0][2]
+    rects = [(-MOD_W / 2, -MOD_L / 2, MOD_W / 2, MOD_L / 2),
+             (min(xs) - r, py - r - 1.5, max(xs) + r, -MOD_L / 2)]
+    return [(c.x + mm(a), c.y + mm(b), c.x + mm(d), c.y + mm(e)) for a, b, d, e in rects]
+
+
 def check_overlaps(board):
     fps = list(board.GetFootprints())
-    boxes = {f.GetReference(): courtyard_bbox(f) for f in fps}
+    boxes = {f.GetReference(): courtyard_boxes(f) for f in fps}
     bad = []
     refs = sorted(boxes)
     for i, a in enumerate(refs):
-        ax0, ay0, ax1, ay1 = boxes[a]
         for b in refs[i + 1:]:
-            bx0, by0, bx1, by1 = boxes[b]
-            if ax0 < bx1 and bx0 < ax1 and ay0 < by1 and by0 < ay1:
-                ov = min(ax1, bx1) - max(ax0, bx0), min(ay1, by1) - max(ay0, by0)
-                bad.append((a, b, round(pcbnew.ToMM(ov[0]), 2), round(pcbnew.ToMM(ov[1]), 2)))
+            for ax0, ay0, ax1, ay1 in boxes[a]:
+                for bx0, by0, bx1, by1 in boxes[b]:
+                    if ax0 < bx1 and bx0 < ax1 and ay0 < by1 and by0 < ay1:
+                        ov = min(ax1, bx1) - max(ax0, bx0), min(ay1, by1) - max(ay0, by0)
+                        bad.append((a, b, round(pcbnew.ToMM(ov[0]), 2), round(pcbnew.ToMM(ov[1]), 2)))
     return bad
 
 
@@ -585,6 +599,9 @@ def build_board():
     ds.m_HoleToHoleMin = mm(0.25)
     ds.m_SolderMaskExpansion = mm(0.05)
     ds.m_SolderMaskMinWidth = 0
+    if VARIANT == 'hand':
+        # GND plosky tlacitek u hrany dosahne zona jen jednim mustkem (proud ~uA, druha vrstva taky) - OK
+        ds.m_MinResolvedSpokes = 1
 
     nets = {}
     def net(name):
@@ -675,11 +692,11 @@ def build_board():
         cx, cy = pcbnew.ToMM(c.x), pcbnew.ToMM(c.y)
         add_text(board, 'NABIJECI MODUL', cx, cy - 4.0, 1.0)
         add_text(board, 'TP4056 USB-C', cx, cy - 2.2, 1.0)
-        add_text(board, 'na pasku, USB-C k hrane', cx, cy + 0.2, 0.8)
-        add_text(board, '+ strana', cx - MOD_W / 2 + 2.2, cy + 4.0, 0.8, 90)
-        add_text(board, 'IN+ dratek podel + strany', cx, cy + 2.0, 0.7)
+        add_text(board, 'na pasku, USB-C dolu', cx + 0.6, cy + 0.2, 0.8)
+        add_text(board, '+ strana modulu (IN+ OUT+)', cx - MOD_W / 2 + 1.4, cy + 2.0, 0.8, 90)
     if VARIANT == 'hand':
-        auto_ref_labels(board, skip={'U3', 'J2', 'J3', 'J5', 'A1', 'J4', 'H1', 'H2', 'H3', 'H4'})
+        auto_ref_labels(board, skip={'U3', 'J2', 'J3', 'J5', 'A1', 'J4', 'H1', 'H2', 'H3', 'H4',
+                                     'SW1', 'SW2', 'SW3', 'SW4'})
     return board, nets
 
 
@@ -1099,7 +1116,8 @@ def hand_outputs(pcb_path, outdir, board):
         if ref.startswith('H'):
             continue
         pkg = {'C3ZERO': 'modul na listach', 'TP4056MOD': 'hotovy modul'}.get(fpdef) if isinstance(fpdef, str) else fpdef[1]
-        pkg = re.sub(r'_\d+Metric.*|_HandSolder.*|_Handsoldering', '', pkg)
+        pkg = re.sub(r'_\d+Metric.*|_HandSolder.*|_Handsoldering|_TabPin2', '', pkg)
+        pkg = re.sub(r'^SolderJumper.*', 'pajeci mustek na desce', pkg)
         groups.setdefault((BOM_VALUE_HAND.get(value, value), pkg), []).append(ref)
     with open(os.path.join(outdir, f'{NAME}_soucastky.csv'), 'w', newline='') as f:
         w = csv.writer(f)
@@ -1107,10 +1125,16 @@ def hand_outputs(pcb_path, outdir, board):
         order = lambda kv: (kv[1][0][0] not in 'RCDQU', sorted(kv[1], key=_refkey)[0][0], kv[0][0])
         for (val, pkg), refs in sorted(groups.items(), key=order):
             w.writerow([val, pkg, len(refs), ' '.join(sorted(refs, key=_refkey)), SHOP_HAND.get(val, '')])
+    # osazovaci vykres: obrysy soucastek, plosky, oznaceni + hodnoty (cernobile, na tisk)
     svg = os.path.join(outdir, f'{NAME}_osazovaci_vykres.svg')
-    subprocess.run(['kicad-cli', 'pcb', 'export', 'svg', '--output', svg,
-                    '--layers', 'F.Fab,F.SilkS,F.Cu,Edge.Cuts', '--exclude-drawing-sheet', '--page-size-mode', '2',
+    subprocess.run(['kicad-cli', 'pcb', 'export', 'svg', '--output', svg, '--black-and-white',
+                    '--layers', 'F.Fab,F.Mask,Edge.Cuts', '--exclude-drawing-sheet', '--page-size-mode', '2',
                     pcb_path], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        import cairosvg
+        cairosvg.svg2png(url=svg, write_to=svg[:-4] + '.png', output_width=1100, background_color='white')
+    except Exception as e:                      # PNG je jen pro pohodli
+        print('  (PNG osazovaciho vykresu nevznikl:', e, ')')
 
 
 def main():
@@ -1162,12 +1186,12 @@ def main():
     nviol, nunc, txt = run_drc(board, os.path.join(out, 'drc.rpt'))
     cats = re.findall(r'^\[(\w+)\]', txt, re.M)
     real = [c for c in cats if c != 'lib_footprint_issues']   # jen chybejici tabulka knihoven
-    print(f'DRC: {len(real)} poruseni ({", ".join(sorted(set(real))) or "zadna"}), {nunc} nepripojenych padu (build/drc.rpt)')
+    print(f'DRC: {len(real)} poruseni ({", ".join(sorted(set(real))) or "zadna"}), {nunc} nepripojenych padu ({os.path.basename(out)}/drc.rpt)')
     # nedoroutovana deska nebo potisk na otvoru se nesmi dostat do ZIPu pro vyrobu
     if (nunc != 0 or real or silk_bad) and not args.force:
         for f in (f'{NAME}_gerber_JLCPCB.zip', f'{NAME}_BOM_JLCPCB.csv', f'{NAME}_CPL_JLCPCB.csv',
                   f'{NAME}_rucni_osazeni.csv', f'{NAME}.step', f'{NAME}_soucastky.csv',
-                  f'{NAME}_osazovaci_vykres.svg'):
+                  f'{NAME}_osazovaci_vykres.svg', f'{NAME}_osazovaci_vykres.png'):
             if os.path.exists(os.path.join(out, f)):
                 os.remove(os.path.join(out, f))      # stara data by k nove desce nesedela
         sys.exit('STOP: deska neni cista (DRC / nepripojene pady / potisk) - vyrobni data NEvytvorena. '

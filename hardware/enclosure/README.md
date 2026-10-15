@@ -37,6 +37,12 @@ v horní části uprav podle svých dílů (posuvným měřítkem):
 - `esp_on_pins` – ESP32-C3-Zero na kolíkové liště (`true`) nebo naplocho (`false`, o 0,6 mm nižší).
 - `cleat_angle` – když po zacvaknutí do držáku stojí krabička bokem, přepni 0 ↔ 90.
 - `fit` – vůle mezi díly (0,25 mm; když víčko jde ztuha, dej 0,35).
+- `pcb_variant` – `"jlc"` (deska osazená z JLCPCB) nebo `"rucni"` (ručně pájená
+  CykloPCB v1 R s nalepeným modulem TP4056): výš posunutý otvor pro USB-C modulu,
+  okénko pro LED modulu v levé stěně, jiná poloha vypínače a jen 3 šrouby
+  (v rohu pod modulem je podpěra bez šroubu). Hotové `stl/base_rucni.stl` a
+  `stl/tray_rucni.stl`; víčko, zobáček a `garmin_test` jsou pro obě stejné.
+  U modulu zkontroluj `mod_size` a `mod_t` (páska + tloušťka jeho desky).
 
 V OpenSCADu pak **F6** (render) a **File → Export → STL**, nebo spusť `./build.sh`.
 

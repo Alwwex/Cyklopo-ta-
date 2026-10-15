@@ -1,0 +1,18 @@
+Hodnota,Pouzdro,Kusu,Oznaceni na desce,Kde koupit / poznamka
+100nF,C_1206,3,C5 C7 C8,keramicky kondenzator 1206 100 nF 50 V X7R (napr. Samsung CL31B104KBCNNNC)
+10uF,C_1206,3,C3 C4 C6,keramicky kondenzator 1206 10 uF 25 V X5R/X7R (napr. Samsung CL31A106KAHNNNE)
+SS34,D_SMA,1,D3,"Schottky 40 V 3 A v pouzdru SMA, napr. SK34A (TME: SK34A-LTP); staci i SS24A/SS14 (SMA). SS34 v SMB/SMC je vetsi!"
+AO3401A,SOT-23,3,Q1 Q2 Q3,"P-MOSFET SOT-23, TME: AO3401A; nahrada IRLML6401 (stejne vyvody G-S-D). Kup 2-3 navic"
+100k,R_1206,6,R6 R7 R8 R9 R11 R13,rezistor 1206 1 % (napr. Yageo RC1206FR-07100KL) nebo sada 1206
+10k,R_1206,1,R14,rezistor 1206 1 % (napr. Yageo RC1206FR-0710KL)
+1k,R_1206,2,R10 R12,rezistor 1206 1 % (napr. Yageo RC1206FR-071KL)
+ESP32-C3-Zero,modul na listach,1,U3,"uz mas (+ 2x lista 1x9, pokud nebyla pripajena)"
+MCP1825S-3302E/DB,SOT-223-3,1,U2,"LDO 3.3 V 500 mA SOT-223 (TME, Mouser). NE AMS1117/LD1117 - maji jine poradi vyvodu!"
+TP4056 USB-C modul,hotovy modul,1,A1,"uz mas; nejlepe verze s ochranou (6 plosek IN+ IN- B+ B- OUT+ OUT-), max. 19 x 30 mm vc. USB-C"
+B- = GND,pajeci mustek na desce,1,JP1,"nic nekupovat - pajeci mustek, spojit JEN pro modul bez ochrany"
+Kolikova lista 1x4,PinHeader_1x04_P2.54mm_Vertical,1,J3,ze stejne listy 1x40
+Kolikova lista 1x4 (volitelne),PinHeader_1x04_P2.54mm_Vertical,1,J5,jen pro externi vodotesna tlacitka
+Kolikova lista 1x8,PinHeader_1x08_P2.54mm_Vertical,1,J2,"lista 1x40 2,54 mm (GME, TME) - nalamat; nebo zdirkova, kdyz ma jit displej odpojit"
+LiPo 3.7V,JST_PH_S2B-PH-K_1x02_P2.00mm_Horizontal,1,J4,JST PH 2.0 mm 2pin uhlovy (S2B-PH-K-S) + protikus PHR-2 nebo hotovy kabel PH2.0; lze i bez nej
+ON/OFF,SW_Slide_SPDT_Angled_CK_OS102011MA1Q,1,SW1,posuvny prepinac uhlovy C&K OS102011MA1QN1 (TME)
+Tlacitko 6x6 uhlove,SW_Tactile_SPST_Angled_PTS645Vx31-2LFS,3,SW2 SW3 SW4,C&K PTS645VL31-2 LFS (TME: PTS645VL312LFS); levna z AliExpressu mivaji jinou roztec

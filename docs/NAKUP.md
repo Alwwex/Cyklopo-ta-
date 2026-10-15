@@ -18,6 +18,26 @@ AliExpress (levné, 2–4 týdny), [JLCPCB](https://jlcpcb.com) (plošné spoje)
 
 > ESP32-C3-Zero, GPS a baterii už máš – přendáš je na PCB.
 
+## A2) Nebo: deska na ruční pájení CykloPCB v1 R (všechno pájíš sám)
+
+Objednáš jen holou desku (`hardware/pcb/build_rucni/…_gerber_JLCPCB.zip`) a
+nabíjení dělá **tvůj modul TP4056 USB-C**. Žádné malinké součástky – nejmenší je
+1206 (3,2 × 1,6 mm) a SOT-23 s prodlouženými ploškami.
+[Návod a zapojení modulu](../hardware/pcb/README.md#varianta-pro-ruční-pájení--cyklopcb-v1-r).
+
+| Co | Kolik | Příklad / kde | ~Cena |
+|---|---|---|---|
+| Holá deska CykloPCB v1 R | 5 ks (minimum) | JLCPCB, bez osazení | 100–250 Kč vč. dopravy |
+| Rezistor 1206 1 % **100k** | 6 (+4) | Yageo RC1206FR-07100KL, GME/TME, nebo sada 1206 | 2 Kč/ks |
+| Rezistor 1206 **10k** / **1k** | 1 / 2 (+ rezerva) | Yageo RC1206FR-0710KL / -071KL | 2 Kč/ks |
+| Kondenzátor 1206 **10 µF 25 V X5R** | 3 (+2) | Samsung CL31A106KAHNNNE | 4 Kč/ks |
+| Kondenzátor 1206 **100 nF 50 V X7R** | 3 (+2) | Samsung CL31B104KBCNNNC | 2 Kč/ks |
+| P-MOSFET **AO3401A** (SOT-23) | 3 (+3) | TME: AO3401A; náhrada IRLML6401 | 4–8 Kč/ks |
+| Schottky **SK34A / SS34 v pouzdru SMA** | 1 (+1) | TME: SK34A-LTP; stačí i SS24A/SS14 (SMA). Pozor, SS34 v SMB/SMC je větší | 5 Kč |
+| LDO **MCP1825S-3302E/DB** (SOT-223) | 1 (+1) | TME, Mouser. **Ne AMS1117** – jiné pořadí vývodů a velký úbytek | 20 Kč |
+| Tlačítka, vypínač, JST PH, lišty | jako v tabulce A | | |
+| Oboustranná pěnová páska ~1 mm, silikonový drátek 26 AWG | – | GME, TME, LaskaKit | 50–100 Kč |
+
 ## B) Krabička a uchycení
 
 | Co | Kolik | ~Cena |

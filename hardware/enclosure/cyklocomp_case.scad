@@ -33,12 +33,12 @@ hand      = pcb_variant == "rucni";
 pcb_holes = hand ? [[3.4, 9.0], [39.6, 9.0], [39.6, 37.6]]
                  : [[3.4, 9.0], [39.6, 9.0], [3.0, 60.6], [39.6, 37.6]];
 pcb_rests = hand ? [[3.0, 60.6]] : [];      // podpery pod PCB bez sroubu (rucni: roh pod modulem)
-sw1_y     = hand ? 30.0 : 45.0;            // vypinac SW1 na PCB (KiCad y)
+sw1_y     = hand ? 25.9 : 45.0;            // vypinac SW1 na PCB (KiCad y)
 // rucni varianta: nabijeci modul lezi na PCB (paska + deska modulu), USB-C je proto vys
-mod_xy    = [11.5, 49.1];                  // stred modulu na PCB (KiCad)
+mod_xy    = [11.5, 48.8];                  // stred modulu na PCB (KiCad)
 mod_size  = [17.5, 28.0];                  // ZMER SVUJ MODUL (bez presahu USB-C)
 mod_t     = 1.0 + 1.2;                     // oboustranna paska + tloustka desky modulu
-mod_led_y = 53;                            // LED modulu (KiCad y) -> okenko v leve stene
+mod_led_y = 52;                            // LED modulu (KiCad y) -> okenko v leve stene
 usbc_x    = hand ? mod_xy[0] : 11.5;
 usbc_z    = hand ? 1.6 + mod_t : 1.6;      // stred nabijeciho USB-C nad PCB
 usbc_h    = hand ? 8.0 : 7.0;              // vyska otvoru (u modulu vetsi tolerance)

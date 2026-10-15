@@ -9,3 +9,8 @@ for p in base lid tray cleat garmin_test; do
   echo "== $p"
   openscad -o "stl/$p.stl" -D "part=\"$p\"" cyklocomp_case.scad
 done
+# rucne pajena deska CykloPCB v1 R (nabijeci modul TP4056): jina vanicka a deska pod baterii
+for p in base tray; do
+  echo "== ${p}_rucni"
+  openscad -o "stl/${p}_rucni.stl" -D "part=\"$p\"" -D 'pcb_variant="rucni"' cyklocomp_case.scad
+done
