@@ -265,7 +265,8 @@ SILK_HAND = [
     ('CykloPCB v1 R', 11.5, 61.6, 1.0, 0),
     ('TFT', 3.6, 3.2, 1.0, 0),
     ('GPS', 27.6, 2.8, 0.8, 90),
-    ('ON', 6.7, 27.6, 0.8, 90),
+    ('ON', 6.4, 24.4, 0.8, 90),
+    ('K', 6.5, 22.2, 0.8, 0),
     ('MODE', 6.6, 12.4, 0.8, 0),
     ('START', 36.2, 12.0, 0.8, 0),
     ('PAUZA', 33.8, 32.4, 0.8, 0),
@@ -283,7 +284,7 @@ for i, t in enumerate(['M', 'S', 'P', 'G']):
 # popisky soucastek (R7, C3...) na potisku: {ref: (x, y, rot)}; ktere tu nejsou, umisti se samy
 REF_POS_HAND = {'C8': (36.7, 9.2, 90), 'C7': (34.6, 29.4, 0), 'D3': (11.9, 24.6, 0),
                 'R6': (10.5, 28.45, 0), 'C3': (16.0, 28.45, 0), 'Q1': (19.6, 19.7, 0), 'JP1': (21.0, 29.6, 0),
-                'C6': (25.0, 31.15, 0)}
+                'C6': (25.0, 31.15, 0), 'C5': (30.0, 37.6, 0)}
 REF_SIZE_HAND = 0.8
 REF_MISSING = []
 
@@ -296,7 +297,7 @@ SHOP_HAND = {
     'TP4056 USB-C modul': 'uz mas; nejlepe verze s ochranou (6 plosek IN+ IN- B+ B- OUT+ OUT-), max. 19 x 30 mm vc. USB-C',
     'LiPo 3.7V': 'JST PH 2.0 mm 2pin uhlovy (S2B-PH-K-S) + protikus PHR-2 nebo hotovy kabel PH2.0; lze i bez nej',
     'B- = GND': 'nic nekupovat - pajeci mustek, spojit JEN pro modul bez ochrany',
-    'SS34': 'Schottky 40 V 3 A v pouzdru SMA, napr. SK34A (TME: SK34A-LTP); staci i SS24A/SS14 (SMA). SS34 v SMB/SMC je vetsi!',
+    'SS34': 'Schottky 40 V 3 A v pouzdru SMA, napr. SK34A (TME: SK34A-LTP); jde i SS24A (SMA). SS34 v SMB/SMC je vetsi!',
     'AO3401A': 'P-MOSFET SOT-23, TME: AO3401A; nahrada IRLML6401 (stejne vyvody G-S-D). Kup 2-3 navic',
     'MCP1825S-3302E/DB': 'LDO 3.3 V 500 mA SOT-223 (TME, Mouser). NE AMS1117/LD1117 - maji jine poradi vyvodu!',
     '100k': 'rezistor 1206 1 % (napr. Yageo RC1206FR-07100KL) nebo sada 1206',
@@ -532,7 +533,9 @@ def add_zone(board, net, layer, poly, rule_area=False):
         z.SetNetCode(net.GetNetCode())
         z.SetLocalClearance(mm(0.3))
         z.SetMinThickness(mm(0.25))
-        z.SetPadConnection(pcbnew.ZONE_CONNECTION_THT_THERMAL)
+        # rucni varianta: termalni mustky i u SMD plosek (GND ploska jde zapajet mikropajkou)
+        z.SetPadConnection(pcbnew.ZONE_CONNECTION_THERMAL if VARIANT == 'hand'
+                           else pcbnew.ZONE_CONNECTION_THT_THERMAL)
         z.SetThermalReliefGap(mm(0.4))
         z.SetThermalReliefSpokeWidth(mm(0.5))
         z.SetAssignedPriority(0)
@@ -625,11 +628,20 @@ def build_board():
         fp.Reference().SetTextSize(pcbnew.VECTOR2I(mm(0.8), mm(0.8)))
         fp.Reference().SetTextThickness(mm(SILK_W))
         fp.Reference().SetVisible(False)   # popisky jsou vlastni (SILK), refs jsou v BOM/CPL
-        fp.Value().SetVisible(VARIANT == 'hand')   # rucni varianta: hodnoty na F.Fab -> osazovaci vykres
         fp.Value().SetLayer(pcbnew.F_Fab)
+        # rucni varianta: hodnota R/C na F.Fab doprostred soucastky -> osazovaci vykres
+        hand_val = VARIANT == 'hand' and ref[0] in 'RC' and ref[1:].isdigit()
+        fp.Value().SetVisible(hand_val)
         board.Add(fp)
         fp.SetPosition(pcbnew.VECTOR2I(mm(x), mm(y)))
         fp.SetOrientationDegrees(rot)
+        if hand_val:
+            fp.Value().SetTextSize(pcbnew.VECTOR2I(mm(0.7), mm(0.7)))
+            fp.Value().SetTextThickness(mm(0.12))
+            fp.Value().SetPosition(pcbnew.VECTOR2I(mm(x), mm(y)))
+            for g in fp.GraphicalItems():           # Fab "${REFERENCE}" schovat, oznaceni je na potisku
+                if isinstance(g, pcbnew.FP_TEXT) and g.GetLayer() == pcbnew.F_Fab:
+                    g.SetVisible(False)
         for p in fp.Pads():
             n = padmap.get(p.GetNumber())
             ni = net(n)
@@ -1128,7 +1140,7 @@ def hand_outputs(pcb_path, outdir, board):
     # osazovaci vykres: obrysy soucastek, plosky, oznaceni + hodnoty (cernobile, na tisk)
     svg = os.path.join(outdir, f'{NAME}_osazovaci_vykres.svg')
     subprocess.run(['kicad-cli', 'pcb', 'export', 'svg', '--output', svg, '--black-and-white',
-                    '--layers', 'F.Fab,F.Mask,Edge.Cuts', '--exclude-drawing-sheet', '--page-size-mode', '2',
+                    '--layers', 'F.Fab,F.SilkS,Edge.Cuts', '--exclude-drawing-sheet', '--page-size-mode', '2',
                     pcb_path], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         import cairosvg

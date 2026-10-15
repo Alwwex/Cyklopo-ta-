@@ -1308,11 +1308,16 @@ void updateBattery() {
   for (int i = 0; i < 8; i++) sum += analogReadMilliVolts(BAT_ADC_PIN);
   float mv = (sum / 8.0f) * BAT_DIVIDER;
   batMv = (batMv < 100) ? mv : 0.8f * batMv + 0.2f * mv;
-  // napajeci vetev ~4.6 V = jede z USB (load-sharing), baterie se nabiji
-  usbPower = batMv > 4400;
+  // napajeci vetev ~4.4-4.7 V = jede z USB (load-sharing), baterie se nabiji.
+  // Baterie nikdy neda vic nez 4.2 V -> prah 4.3 V s hysterezi (pri nabijeni 1 A
+  // a delsim kabelu muze VBUS za Schottky klesnout k ~4.4 V)
+  if (usbPower) usbPower = batMv > 4250;
+  else usbPower = batMv > 4300;
   if (!usbPower) batPct = lipoPercent(batMv);
 
-  if (!usbPower && batMv > 2500 && batMv < 3350) lowBatSeconds++;
+  // < 3.0 V neni vybita baterie, ale napajeni jen z USB modulu ESP
+  // (3.3 V zpetne pres LDO) - to nevypinat
+  if (!usbPower && batMv > 3000 && batMv < 3350) lowBatSeconds++;
   else lowBatSeconds = 0;
 }
 

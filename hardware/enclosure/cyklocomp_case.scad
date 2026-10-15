@@ -42,6 +42,7 @@ mod_led_y = 52;                            // LED modulu (KiCad y) -> okenko v l
 usbc_x    = hand ? mod_xy[0] : 11.5;
 usbc_z    = hand ? 1.6 + mod_t : 1.6;      // stred nabijeciho USB-C nad PCB
 usbc_h    = hand ? 8.0 : 7.0;              // vyska otvoru (u modulu vetsi tolerance)
+j5_xy     = hand ? [9.2, 8.6] : [13.0, 14.0];   // lista J5 (externi tlacitka) -> vyrez v desce pod baterii
 esp_on_pins = true; // ESP32-C3-Zero na kolickove liste (true) / naplocho (false)
 standoff_h = 2.5;   // mezera pod PCB (zkrat vyvody THT na 1.5 mm)
 comp_h    = esp_on_pins ? 7.4 : 6.8;  // nejvyssi soucastka nad PCB (ESP+USB-C, uhlova tlacitka)
@@ -123,7 +124,11 @@ module base() {
 
         // --- zadni stena: USB-C nabijeni (J1) a USB-C ESP (programovani)
         j1 = P(usbc_x, 64);
-        translate([j1[0], -wall / 2, pcb_top + usbc_z]) rounded_slot(12.5, usbc_h, wall + 2);
+        if (hand)   // obdelnik se zaoblenim: vejde se i silnejsi koncovka kabelu (az ~12 x 6.5 mm)
+            translate([j1[0], -wall / 2, pcb_top + usbc_z]) rotate([90, 0, 0])
+                linear_extrude(wall + 2, center = true) offset(r = 1.5) square([13.0 - 3, usbc_h - 3], center = true);
+        else
+            translate([j1[0], -wall / 2, pcb_top + usbc_z]) rounded_slot(12.5, usbc_h, wall + 2);
         esp = P(32.0, 64);
         esp_z = pcb_top + (esp_on_pins ? 2.5 : 0) + 1.0 + 1.6;
         translate([esp[0], -wall / 2, esp_z]) rounded_slot(12.5, 7.5, wall + 2);
@@ -154,9 +159,9 @@ module base() {
             translate([x - 4.2, -1.3, H_in - skirt_d + 0.4]) cube([8.4, 1.4, 1.9]);
 
         // --- otvory ve dne: srouby PCB (zespodu), zobacek Garmin, srouby vicka
-        for (h = pcb_holes) {   // slepe otvory: srouby M2.5x12 shora skrz desku pod baterii a PCB
+        for (h = pcb_holes) {   // slepe otvory: srouby M2.5x14 shora skrz desku pod baterii a PCB
             p = P(h[0], h[1]);
-            translate([p[0], p[1], -floor_t + 0.8]) cylinder(d = 2.2, h = standoff_h + floor_t);
+            translate([p[0], p[1], -floor_t + 0.4]) cylinder(d = 2.2, h = standoff_h + floor_t);
         }
         for (s = [-1, 1]) {
             c = [W_in / 2 + s * 16, L_in / 2];
@@ -173,7 +178,7 @@ module base() {
         p = P(h[0], h[1]);
         difference() {
             translate([p[0], p[1], 0]) cylinder(d = 5.0, h = standoff_h);
-            translate([p[0], p[1], -1.2]) cylinder(d = 2.2, h = standoff_h + 2);
+            translate([p[0], p[1], -floor_t + 0.4]) cylinder(d = 2.2, h = standoff_h + floor_t);
         }
     }
     for (h = pcb_rests) { p = P(h[0], h[1]); translate([p[0], p[1], 0]) cylinder(d = 5.0, h = standoff_h); }
@@ -250,7 +255,12 @@ module tray() {
         }
         for (h = pcb_holes) {
             p = P(h[0], h[1]);
-            translate([p[0], p[1], pcb_top - 1]) cylinder(d = 2.9, h = comp_h + tray_t + 4);       // M2.5 x 16 skrz do sloupku
+            translate([p[0], p[1], pcb_top - 1]) cylinder(d = 2.9, h = comp_h + tray_t + 4);       // M2.5 x 14 skrz do sloupku
+        }
+        {   // vyrez nad listou J5 (konektor externich tlacitek je vyssi nez soucastky)
+            a = P(j5_xy[0] - 1.6, j5_xy[1] + 1.7);
+            b = P(j5_xy[0] + 9.2, j5_xy[1] - 1.7);
+            translate([a[0], a[1], tray_z0 - 1]) cube([b[0] - a[0], b[1] - a[1], tray_t + 2]);
         }
     }
 }

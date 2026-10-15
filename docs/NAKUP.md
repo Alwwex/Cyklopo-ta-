@@ -33,7 +33,8 @@ nabíjení dělá **tvůj modul TP4056 USB-C**. Žádné malinké součástky �
 | Kondenzátor 1206 **10 µF 25 V X5R** | 3 (+2) | Samsung CL31A106KAHNNNE | 4 Kč/ks |
 | Kondenzátor 1206 **100 nF 50 V X7R** | 3 (+2) | Samsung CL31B104KBCNNNC | 2 Kč/ks |
 | P-MOSFET **AO3401A** (SOT-23) | 3 (+3) | TME: AO3401A; náhrada IRLML6401 | 4–8 Kč/ks |
-| Schottky **SK34A / SS34 v pouzdru SMA** | 1 (+1) | TME: SK34A-LTP; stačí i SS24A/SS14 (SMA). Pozor, SS34 v SMB/SMC je větší | 5 Kč |
+| Schottky **SK34A / SS34 v pouzdru SMA** | 1 (+1) | TME: SK34A-LTP; jde i SS24A (SMA). Pozor, SS34 v SMB/SMC je větší | 5 Kč |
+| Rezistor **2,4 kΩ** 0603 nebo 0805 (volitelně) | 1 | na modul TP4056 místo Rprog 1,2k → nabíjení ~500 mA (méně tepla v krabičce) | 2 Kč |
 | LDO **MCP1825S-3302E/DB** (SOT-223) | 1 (+1) | TME, Mouser. **Ne AMS1117** – jiné pořadí vývodů a velký úbytek | 20 Kč |
 | Tlačítka, vypínač, JST PH, lišty | jako v tabulce A | | |
 | Oboustranná pěnová páska ~1 mm, silikonový drátek 26 AWG | – | GME, TME, LaskaKit | 50–100 Kč |
@@ -43,7 +44,7 @@ nabíjení dělá **tvůj modul TP4056 USB-C**. Žádné malinké součástky �
 | Co | Kolik | ~Cena |
 |---|---|---|
 | Filament **PETG nebo ASA** (ne PLA – na slunci měkne) | ~60 g | 50 Kč |
-| Šrouby: 4× M2.5×12 PT do plastu, 2× M2×4 PT, 2× M3×25, 2× M3×4 zápustné | sada | 100 Kč |
+| Šrouby: 4× M2.5×14 PT do plastu (ruční deska: 3×), 2× M2×4 PT, 2× M3×25, 2× M3×4 zápustné | sada | 100 Kč |
 | Čirý **polykarbonát 1 mm** na ochranné okénko | 5×5 cm | 50 Kč |
 | EPDM pěnová páska 3×1 mm (těsnění víčka), oboustranná pěnová páska | – | 80 Kč |
 | Silikonové záslepky USB-C | 2 | 50 Kč |

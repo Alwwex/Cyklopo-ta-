@@ -102,9 +102,19 @@ JLC osadí jen SMD součástky nahoře. **Ručně připájíš** (seznam
 |---|---|
 | ![rucni](build_rucni/CykloPCB_v1_rucni_preview_top.png) | ![vykres](build_rucni/CykloPCB_v1_rucni_osazovaci_vykres.png) |
 
-Stejná velikost, díry, tlačítka, konektory i piny ESP jako v1 – jen místo USB-C
+Stejná velikost, displej, GPS, boční tlačítka a piny ESP jako v1 – místo USB-C
 a nabíječky na desce se **nalepí tvůj modul TP4056 USB-C** a ostatní součástky
 jsou velké (1206 = 3,2 × 1,6 mm, rozšířené plošky „HandSolder“).
+
+Rozdíly proti v1 (a proti [schématu](schema_zapojeni.svg), které kreslí v1):
+
+- **A1 = modul TP4056** místo J1, U1, R1–R5, C1, C2, D1, D2 (USB-C, nabíječka, LED).
+- **J4 pin 2 = B-** (vede do modulu na jeho B-), ne GND. **JP1** = pájecí můstek B- ↔ GND.
+- **U2 = MCP1825S-3302E/DB** v SOT-223 (1 VIN, 2 + chladicí ploška GND, 3 VOUT;
+  500 mA, klidový proud ~120 µA) místo AP2112K.
+- Jen **3 montážní díry** (H3 v rohu pod modulem odpadá), vypínač SW1, J4 a J5
+  jsou jinde → krabička s `pcb_variant = "rucni"`.
+- GND plošky SMD součástek mají tepelné můstky (jdou snadno zapájet).
 
 **Objednání:** na JLCPCB nahraj jen `build_rucni/CykloPCB_v1_rucni_gerber_JLCPCB.zip`,
 5 ks, 2 vrstvy, 1,6 mm, HASL lead free, **PCB Assembly vypnuté**.
@@ -136,10 +146,15 @@ Součástky: [`build_rucni/CykloPCB_v1_rucni_soucastky.csv`](build_rucni/CykloPC
 > jen PCM v baterii.
 
 - Nabíjí ~1 A (Rprog 1,2 kΩ) → použij nabíječku aspoň **1,5–2 A**, ne USB v PC.
-  Modul hřeje (až ~1,3 W), proto neleží pod baterií.
+  Při 1 A čip hřeje až ~1,3 W a v krabičce leží **pod baterií** → doporučuju na
+  modulu vyměnit Rprog (~1,2 kΩ u vývodu 2 TP4056) za **2,4 kΩ** → ~500 mA
+  (jako JLC verze). Plné nabití pak trvá ~4–5 h.
 - Hodně levných modulů **nemá na USB-C odpory 5,1 kΩ (CC)** – pak nenabíjí
   z nabíječky USB-C → USB-C, jen kabelem **USB-A → USB-C**. Vyzkoušej předem.
 - LED modulu prosvítí okénkem v levé stěně krabičky (`pcb_variant = "rucni"`).
+- Čelo USB-C modulu má být **zarovnané s hranou desky** (nebo 1–2 mm přes ni,
+  do otvoru v krabičce) a vnitřní konec modulu přichyť kapkou tavného lepidla
+  nebo epoxidu – samotná páska při zasouvání kabelu povolí.
 
 ### Pořadí pájení
 
@@ -151,15 +166,23 @@ Nástroje: mikropájka s teplotou (Pinecil / TS101 / stanice), hrot sekáček
 2. **MOSFETy Q1–Q3 (SOT-23)** – stejný postup, jeden vývod je sám na jedné straně.
 3. **LDO U2 (SOT-223)** – nejdřív vývod 1, pak 2 a 3, nakonec velkou chladicí
    plošku (GND, potřebuje víc tepla ~350–380 °C a tavidlo).
-4. **Dioda D3 (SMA)** – proužek (katoda) k plošce **1** = strana s potiskem katody.
+4. **Dioda D3 (SMA)** – proužek (katoda) k ploše **vlevo, u písmene K** (k vypínači).
 5. THT: vypínač SW1, tlačítka SW2–4 (zatlač až k desce, ať sedí s krabičkou),
    J4, lišty J2, J3 (J5 jen pro externí tlačítka).
 6. Modul TP4056: drátky nejdřív na modul, pak přilepit, pak na desku.
 7. ESP32-C3-Zero úplně nakonec (**USB-C ESP dolů** k hraně, je to na potisku).
 
-**Kontrola před zapnutím:** multimetrem 3V3–GND a VSW–GND nesmí pípat (zkrat).
-Pak USB do modulu, vypínač ON: VSW ≈ 4,6 V, 3V3 = 3,3 V. Potom baterie (**polarita!**)
-a znovu 3V3 bez USB. Teprve pak ESP.
+**Kontrola před zapnutím** (bez baterie), multimetrem na pípání – nic z toho nesmí pípat:
+3V3–GND, VSW–GND, **J4 + ↔ J4 B-** (zkrat baterie) a u modulu s ochranou
+**B- ↔ GND** (JP1 musí zůstat rozpojený).
+
+Pak USB do modulu, vypínač ON: VSW ≈ 4,4–4,7 V, 3V3 = 3,3 V. Potom baterie
+(**polarita!**) a znovu 3V3 bez USB. Když po připojení baterie nic nejde, připoj
+na chvíli USB do modulu – tím se „probudí“ jeho ochrana (DW01). Teprve pak ESP.
+
+> Vypínač OS102011MA1QN1 je katalogově na 100 mA a vede celý odběr (~0,1–0,3 A při
+> 4 V). V hobby zapojeních to běžně funguje; když chceš rezervu, kup posuvný
+> přepínač se stejnou roztečí vývodů a proudem ≥ 0,5 A.
 
 Generování: `python3 generate_pcb.py --variant hand --freerouting /cesta/k/freerouting-1.9.0.jar`
 a `python3 render_preview.py hand`.

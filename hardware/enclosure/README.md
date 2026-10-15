@@ -62,7 +62,7 @@ oficiálně nezveřejňuje a držáky se liší, proto:
 ## Sestavení
 
 1. **Tray + PCB do vaničky**: PCB vlož do vaničky (USB-C k zadní stěně,
-   tlačítka k bočním otvorům), na ni polož `tray` a vše stáhni 4× **M2.5 × 12**
+   tlačítka k bočním otvorům), na ni polož `tray` a vše stáhni 4× **M2.5 × 14** (ruční deska 3×)
    (samořezné „PT“ šrouby do plastu) do sloupků ve dně.
 2. **Baterie** na tray – oboustrannou pěnovou páskou (drží a tlumí otřesy).
    Konektor JST do J4 (**zkontroluj polaritu!**).
@@ -80,7 +80,7 @@ oficiálně nezveřejňuje a držáky se liší, proto:
 
 ## Co dokoupit ke krabičce
 
-- šrouby: 4× M2.5×12 PT (do plastu), 2× M2×4 PT, 2× M3×25, 2× M3×4 zápustné
+- šrouby: 4× M2.5×14 PT (do plastu; ruční deska 3×), 2× M2×4 PT, 2× M3×25, 2× M3×4 zápustné
 - 1 mm čirý polykarbonát (stačí kousek 40 × 50 mm)
 - EPDM pěnová páska 3 × 1 mm, oboustranná pěnová páska, 2× silikonová záslepka USB-C
 - Garmin držák (originál „Garmin quarter-turn out-front“ nebo levná kopie z AliExpressu)
